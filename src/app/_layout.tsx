@@ -1,0 +1,34 @@
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+
+import { SessionProvider } from '../lib/session';
+import { colors } from '../lib/theme';
+
+// Alle Seiten als Stapel (Flutter: Navigator mit MaterialPageRoute).
+export default function RootLayout() {
+  return (
+    <SessionProvider>
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.appBar },
+          headerTintColor: colors.text,
+          headerBackButtonDisplayMode: 'minimal',
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="register" options={{ title: 'Neues Konto' }} />
+        <Stack.Screen name="forgot-password" options={{ title: 'Passwort vergessen' }} />
+        <Stack.Screen name="home" options={{ title: '' }} />
+        <Stack.Screen name="request" options={{ title: 'Anfrage' }} />
+        <Stack.Screen name="locations/index" options={{ title: 'Meine Orte' }} />
+        <Stack.Screen name="locations/form" options={{ title: 'Ort' }} />
+        <Stack.Screen name="profile" options={{ title: 'Meine Daten' }} />
+        <Stack.Screen name="picture" options={{ title: 'Profilbild' }} />
+        <Stack.Screen name="notifications" options={{ title: 'Benachrichtigungen' }} />
+      </Stack>
+    </SessionProvider>
+  );
+}
