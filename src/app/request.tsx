@@ -19,6 +19,7 @@ import {
 import { api, errorMessage } from '../lib/api';
 import { at, dateOnly, formatDate, formatHM, formatTime, Time, timeOf, today } from '../lib/dates';
 import { peek } from '../lib/handoff';
+import { openRoute } from '../lib/maps';
 import { LocationData, locationAddress, OfferData, parseLocation, parseOffer, RequestData } from '../lib/models';
 import { colors, confirm } from '../lib/theme';
 
@@ -228,6 +229,8 @@ export default function RequestFormScreen() {
       return n;
     });
 
+  // Route nur mit ganzer Adresse (Straße, PLZ, Ort).
+  const canRoute = [locStreet, locPostal, locCity].every((v) => v.trim() !== '');
   const shownOffers = isOpen ? openOffers : offers.filter((o) => o.status === 'awarded');
 
   return (
@@ -347,6 +350,21 @@ export default function RequestFormScreen() {
               />
               <AppTextField style={{ flex: 1 }} label="Ort" value={locCity} onChangeText={setLocCity} editable={editable} />
             </View>
+            {/* Route: erst wenn die ganze Adresse da ist; öffnet die Standard-Karten-App. */}
+            {canRoute && (
+              <Pressable
+                style={s.routeButton}
+                accessibilityRole="button"
+                onPress={() =>
+                  openRoute(`${locStreet.trim()}, ${locPostal.trim()} ${locCity.trim()}`).catch((e) =>
+                    setError(errorMessage(e)),
+                  )
+                }
+              >
+                <MaterialIcons name="directions" size={20} color={colors.primary} />
+                <Text style={s.routeText}>Route in Karten öffnen</Text>
+              </Pressable>
+            )}
             <View style={s.row}>
               <AppTextField
                 style={{ flex: 1, marginRight: 12 }}
@@ -451,6 +469,8 @@ const s = StyleSheet.create({
   sectionTitle: { fontSize: 14, fontWeight: '500', marginBottom: 4, color: colors.text },
   offer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   offerName: { flex: 1, fontSize: 15, color: colors.text },
+  routeButton: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 6, paddingVertical: 8, marginBottom: 8 },
+  routeText: { color: colors.primary, fontSize: 15, fontWeight: '500' },
   noPicture: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.field, alignItems: 'center', justifyContent: 'center' },
   suggestion: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10 },
 });
