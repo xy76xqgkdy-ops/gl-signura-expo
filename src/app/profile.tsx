@@ -10,11 +10,9 @@ import { isValidEmail } from '../lib/dates';
 import { useSession } from '../lib/session';
 import { colors } from '../lib/theme';
 
-// Sprache der App (Anzeige, E-Mails).
-const APP_LANGUAGES: FlagItem[] = [
-  { value: 'de_DE', name: 'Deutsch', flag: '🇩🇪' },
-  { value: 'en_US', name: 'English', flag: '🇬🇧' },
-];
+// Sprache der App (Anzeige, E-Mails). Zurzeit nur Deutsch, Englisch kommt später:
+// { value: 'en_US', name: 'English', flag: '🇬🇧' },
+const APP_LANGUAGES: FlagItem[] = [{ value: 'de_DE', name: 'Deutsch', flag: '🇩🇪' }];
 
 // Wie das Backend: +49… ohne Leerzeichen, damit "0170 1" = "+491701" ist.
 function normMobile(m: string) {
@@ -40,7 +38,10 @@ export default function ProfileScreen() {
   const [mobile, setMobile] = useState(str('mobile'));
   const [emailCode, setEmailCode] = useState('');
   const [mobileCode, setMobileCode] = useState('');
-  const [language, setLanguage] = useState(str('language') || 'de_DE');
+  // Gespeicherte Sprache, wenn es sie (noch) gibt, sonst Deutsch.
+  const [language, setLanguage] = useState(
+    APP_LANGUAGES.some((l) => l.value === str('language')) ? str('language') : 'de_DE',
+  );
   // Sprache für die Übersetzung: genau eine (Pflicht, Standard DGS).
   const [translation, setTranslation] = useState<string>(
     Array.isArray(user?.translation_languages) && typeof user.translation_languages[0] === 'string'
@@ -165,11 +166,6 @@ export default function ProfileScreen() {
     );
   }
 
-  // Unbekannte, gespeicherte Sprache der App (z. B. aus der alten App) zeigen.
-  const appLanguages = APP_LANGUAGES.some((l) => l.value === language)
-    ? APP_LANGUAGES
-    : [...APP_LANGUAGES, { value: language, name: language, flag: '🏳️' }];
-
   return (
     <Screen>
       <View style={{ flexDirection: 'row' }}>
@@ -179,7 +175,7 @@ export default function ProfileScreen() {
       <AppTextField label="E-Mail" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
       <AppTextField label="Handynummer" value={mobile} onChangeText={setMobile} keyboardType="phone-pad" />
       {/* Sprache der App: genau eine; Antippen setzt das Häkchen um. */}
-      <FlagCheckList label="Sprache der App" items={appLanguages} selected={[language]} onChange={(v) => setLanguage(v)} />
+      <FlagCheckList label="Sprache der App" items={APP_LANGUAGES} selected={[language]} onChange={(v) => setLanguage(v)} />
       <View style={{ height: 16 }} />
       {/* Sprache für die Übersetzung: genau eine; Antippen setzt das Häkchen um. */}
       {allLanguages.length === 0 ? (
