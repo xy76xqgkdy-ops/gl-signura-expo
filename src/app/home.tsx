@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -182,14 +182,12 @@ function EmptyDay({ onNew }: { onNew: () => void }) {
 //   rechts  Status
 function RequestTile({ request: r, onPress }: { request: RequestData; onPress: () => void }) {
   const cancelled = r.status === 'cancelled';
-  // Gebucht: Namen; offen: Zahl der Zusagen und Bedarf.
+  // Gebucht: Namen; offen: Zahl der Zusagen.
   const interpreter = r.interpreterName
     ? r.interpreterName
     : r.status === 'new' && r.offerCount > 0
-      ? `${r.offerCount} ${r.offerCount === 1 ? 'Zusage' : 'Zusagen'} · Sie brauchen ${r.interpretersNeeded}`
-      : r.interpretersNeeded > 1
-        ? `noch keine Zusage · Sie brauchen ${r.interpretersNeeded}`
-        : 'noch keine Zusage';
+      ? `${r.offerCount} ${r.offerCount === 1 ? 'Zusage' : 'Zusagen'}`
+      : 'noch keine Zusage';
   const place = r.locationName || r.purpose;
   const color = STATUS[r.status].color;
 

@@ -31,7 +31,6 @@ export type RequestData = {
   locationPhone: string;
   interpreterName: string | null;
   interpreterPicture: string | null;
-  interpretersNeeded: number;
   offerCount: number;
   status: RequestStatus;
 };
@@ -53,7 +52,6 @@ export function parseRequest(j: Json): RequestData {
     locationPhone: str(j.location_phone),
     interpreterName: nonEmpty(j.interpreter_name),
     interpreterPicture: nonEmpty(j.interpreter_picture),
-    interpretersNeeded: typeof j.interpreters_needed === 'number' ? j.interpreters_needed : 1,
     offerCount: typeof j.offer_count === 'number' ? j.offer_count : 0,
     status,
   };

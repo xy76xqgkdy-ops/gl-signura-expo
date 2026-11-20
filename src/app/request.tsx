@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -10,7 +10,6 @@ import {
   Card,
   Checkbox,
   ErrorText,
-  Muted,
   OutlineButton,
   PrimaryButton,
   RoundIconButton,
@@ -60,8 +59,6 @@ export default function RequestFormScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Wie viele Dolmetscher gebraucht werden (1–20).
-  const [needed, setNeeded] = useState(existing?.interpretersNeeded ?? 1);
   // Zusagen (nur Namen, keine Vermittler) und die zum Buchen angekreuzten.
   const [offers, setOffers] = useState<OfferData[]>([]);
   const [chosen, setChosen] = useState<Set<string>>(new Set());
@@ -175,7 +172,6 @@ export default function RequestFormScreen() {
         location_city: locCity.trim(),
         location_email: locEmail.trim(),
         location_phone: locPhone.trim(),
-        interpreters_needed: needed,
       };
       if (existing) await api.putJson(`/me/requests/${existing.id}`, body);
       else await api.postJson('/me/requests', body);
@@ -201,10 +197,9 @@ export default function RequestFormScreen() {
       .filter((o) => chosen.has(o.id))
       .map((o) => o.interpreterName)
       .join(', ');
-    const shortage = n < needed ? `\n\nSie brauchen ${needed}, haben aber nur ${n} ausgewählt.` : '';
     const ok = await confirm({
       title: n === 1 ? '1 Dolmetscher buchen?' : `${n} Dolmetscher buchen?`,
-      message: `${names}${shortage}\n\nDie anderen bekommen eine Absage. Sie können das nicht rückgängig machen.`,
+      message: `${names}\n\nDie anderen bekommen eine Absage. Sie können das nicht rückgängig machen.`,
       ok: 'buchen',
       cancel: 'Abbrechen',
     });
@@ -302,15 +297,6 @@ export default function RequestFormScreen() {
           />
         </View>
 
-        {/* Wie viele Dolmetscher gebraucht werden. */}
-        <View style={[s.row, { marginBottom: 16 }]}>
-          <MaterialIcons name="groups" size={24} color={colors.text} />
-          <Text style={s.neededLabel}>Wie viele Dolmetscher?</Text>
-          <RoundIconButton icon="remove" label="weniger" variant="outlined" disabled={!editable || needed <= 1} onPress={() => setNeeded(needed - 1)} />
-          <Text style={s.neededValue}>{needed}</Text>
-          <RoundIconButton icon="add" label="mehr" variant="outlined" disabled={!editable || needed >= 20} onPress={() => setNeeded(needed + 1)} />
-        </View>
-
         {/* Gespeicherten Ort suchen und übernehmen (auch bei "per Video"), "+" legt einen neuen an. */}
         {editable && (
           <View style={[s.row, { marginBottom: 12 }]}>
@@ -376,7 +362,7 @@ export default function RequestFormScreen() {
         {offers.length > 0 && (
           <View style={{ marginTop: 16 }}>
             <Text style={s.sectionTitle}>
-              {isOpen ? `Zusagen: ${chosen.size} von ${needed} ausgewählt` : 'Gebuchte Dolmetscher'}
+              {isOpen ? `Zusagen: ${chosen.size} ausgewählt` : 'Gebuchte Dolmetscher'}
             </Text>
             <Card>
               {shownOffers.map((o) =>
@@ -394,9 +380,6 @@ export default function RequestFormScreen() {
                 ),
               )}
             </Card>
-            {isOpen && chosen.size > needed && (
-              <Muted style={{ marginTop: 4 }}>Sie haben mehr ausgewählt, als Sie brauchen ({needed}).</Muted>
-            )}
           </View>
         )}
 
@@ -450,8 +433,6 @@ const s = StyleSheet.create({
   segItem: { paddingHorizontal: 12, paddingVertical: 10 },
   segFirst: { borderRightWidth: 1, borderRightColor: colors.outline },
   segText: { fontSize: 14, color: colors.text },
-  neededLabel: { flex: 1, marginLeft: 12, fontSize: 15, color: colors.text },
-  neededValue: { width: 40, textAlign: 'center', fontSize: 18, fontWeight: '600', color: colors.text },
   sectionTitle: { fontSize: 14, fontWeight: '500', marginBottom: 4, color: colors.text },
   offer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   offerName: { flex: 1, fontSize: 15, color: colors.text },
