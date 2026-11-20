@@ -1,9 +1,9 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { DatePickerSheet, OptionSheet, SearchSheet, TimePickerSheet } from '../components/pickers';
+import { DatePickerSheet, OptionSheet, TimePickerSheet } from '../components/pickers';
 import { StatusChip } from '../components/StatusChip';
 import {
   AppTextField,
@@ -12,13 +12,12 @@ import {
   ErrorText,
   OutlineButton,
   PrimaryButton,
-  RoundIconButton,
   Screen,
   TapField,
 } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { at, dateOnly, formatDate, formatHM, formatTime, Time, timeOf, today } from '../lib/dates';
-import { peek, take } from '../lib/handoff';
+import { peek } from '../lib/handoff';
 import { LocationData, locationAddress, OfferData, parseLocation, parseOffer, RequestData } from '../lib/models';
 import { colors, confirm } from '../lib/theme';
 
@@ -55,7 +54,8 @@ export default function RequestFormScreen() {
   const [locationId, setLocationId] = useState<string | null>(existing?.locationId ?? null); // nur Herkunft
 
   const [locations, setLocations] = useState<LocationData[]>([]);
-  const [loadingLocations, setLoadingLocations] = useState(true);
+  // Vorschläge aus "Meine Orte" unter dem Namensfeld zeigen.
+  const [nameFocused, setNameFocused] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +63,7 @@ export default function RequestFormScreen() {
   const [offers, setOffers] = useState<OfferData[]>([]);
   const [chosen, setChosen] = useState<Set<string>>(new Set());
 
-  const [picker, setPicker] = useState<'date' | 'start' | 'end' | 'purpose' | 'location' | null>(null);
+  const [picker, setPicker] = useState<'date' | 'start' | 'end' | 'purpose' | null>(null);
 
   const isOpen = existing?.status === 'new';
   // Neue Anfrage oder offene ohne Zusagen: alle Felder änderbar.
@@ -93,8 +93,6 @@ export default function RequestFormScreen() {
         setLocations(list.map(parseLocation));
       } catch (e) {
         setError(errorMessage(e));
-      } finally {
-        setLoadingLocations(false);
       }
     })();
     if (existing && (existing.offerCount > 0 || existing.status === 'confirmed')) {
@@ -117,16 +115,12 @@ export default function RequestFormScreen() {
     setLocationId(l.id);
   };
 
-  // Zurück vom "Neuer Ort": den neuen Ort übernehmen.
-  useFocusEffect(
-    useCallback(() => {
-      const created = take<LocationData>('location:created');
-      if (created) {
-        setLocations((ls) => [...ls, created]);
-        applyLocation(created);
-      }
-    }, []),
-  );
+  // Orte passend zum eingetippten Namen (auch Straße oder Ort); leer: alle.
+  const q = locName.trim().toLowerCase();
+  const suggestions = locations
+    .filter((l) => !q || `${l.name} ${locationAddress(l)}`.toLowerCase().includes(q))
+    .filter((l) => l.id !== locationId || l.name !== locName)
+    .slice(0, 8);
 
   const startAt = at(date, startTime);
   const endAt = at(date, endTime);
@@ -297,30 +291,41 @@ export default function RequestFormScreen() {
           />
         </View>
 
-        {/* Gespeicherten Ort suchen und übernehmen (auch bei "per Video"), "+" legt einen neuen an. */}
-        {editable && (
-          <View style={[s.row, { marginBottom: 12 }]}>
-            {loadingLocations ? (
-              <ActivityIndicator style={{ flex: 1 }} color={colors.primary} />
-            ) : (
-              <TapField
-                style={{ flex: 1, marginBottom: 0, marginRight: 8 }}
-                label="Ort"
-                placeholder="Ort suchen"
-                trailingIcon="search"
-                onPress={() => setPicker('location')}
-              />
-            )}
-            <RoundIconButton icon="add" label="Neuer Ort" disabled={loading} onPress={() => router.push('/locations/form')} />
-          </View>
-        )}
-
+        {/* Name des Orts mit Suche: Tippen zeigt passende Orte aus "Meine Orte", Antippen
+            übernimmt die Adresse. Ein neuer Ort landet beim Speichern der Anfrage automatisch
+            in "Meine Orte" (macht das Backend, wenn Name, Straße, PLZ und Ort neu sind). */}
         <AppTextField
-          label={remote ? 'Name (z. B. Gesprächspartner)' : 'Name (z. B. Praxis Dr. Müller)'}
+          label={remote ? 'Name (z. B. Gesprächspartner)' : 'Name des Orts (z. B. Praxis Dr. Müller)'}
+          placeholder={editable ? 'Name eingeben oder suchen' : undefined}
+          rightIcon={editable ? 'search' : undefined}
           value={locName}
           onChangeText={setLocName}
           editable={editable}
+          onFocus={() => setNameFocused(true)}
+          // Verzögert, damit ein Antippen der Vorschläge (Browser) noch ankommt.
+          onBlur={() => setTimeout(() => setNameFocused(false), 200)}
+          style={nameFocused && editable && suggestions.length > 0 ? { marginBottom: 4 } : undefined}
         />
+        {nameFocused && editable && suggestions.length > 0 && (
+          <Card style={{ marginBottom: 12 }}>
+            {suggestions.map((l) => (
+              <Pressable
+                key={l.id}
+                style={({ pressed }) => [s.suggestion, pressed && { backgroundColor: colors.field }]}
+                onPress={() => {
+                  applyLocation(l);
+                  setNameFocused(false);
+                }}
+              >
+                <MaterialIcons name="place" size={20} color={colors.muted} />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={s.offerName}>{l.name}</Text>
+                  <Text style={{ fontSize: 13, color: colors.muted }}>{locationAddress(l)}</Text>
+                </View>
+              </Pressable>
+            ))}
+          </Card>
+        )}
         {/* Adresse und Kontakt: bei "per Video" ausgeblendet, aber aus dem gewählten Ort trotzdem mitgespeichert. */}
         {!remote && (
           <>
@@ -415,13 +420,6 @@ export default function RequestFormScreen() {
         />
       )}
       <OptionSheet visible={picker === 'purpose'} options={purposeOptions} value={purpose} onPick={setPurpose} onClose={() => setPicker(null)} />
-      <SearchSheet
-        visible={picker === 'location'}
-        items={locations}
-        labelOf={(l) => `${l.name} – ${locationAddress(l)}`}
-        onPick={applyLocation}
-        onClose={() => setPicker(null)}
-      />
     </>
   );
 }
@@ -436,4 +434,5 @@ const s = StyleSheet.create({
   sectionTitle: { fontSize: 14, fontWeight: '500', marginBottom: 4, color: colors.text },
   offer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   offerName: { flex: 1, fontSize: 15, color: colors.text },
+  suggestion: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10 },
 });

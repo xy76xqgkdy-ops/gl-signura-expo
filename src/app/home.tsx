@@ -6,7 +6,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { CalendarBadge, MonthCalendar } from '../components/MonthCalendar';
 import { Sheet } from '../components/pickers';
 import { StatusChip } from '../components/StatusChip';
-import { Divider, ErrorText, FilledButton, IconName, RoundIconButton, Screen } from '../components/ui';
+import { Divider, ErrorText, IconName, RoundIconButton, Screen } from '../components/ui';
 import { api, ApiException, errorMessage } from '../lib/api';
 import { firstOfMonth, formatLongDate, formatMonthYear, sameDay, today } from '../lib/dates';
 import { put } from '../lib/handoff';
@@ -135,7 +135,7 @@ export default function HomeScreen() {
         {error ? (
           <ErrorText message={error} />
         ) : ofDay.length === 0 ? (
-          !loading && <EmptyDay onNew={newRequest} />
+          !loading && <EmptyDay />
         ) : (
           ofDay.map((r, i) => (
             <View key={r.id}>
@@ -163,13 +163,12 @@ export default function HomeScreen() {
   );
 }
 
-// Leerer Tag: Hinweis und Knopf "Neue Anfrage" in der Mitte.
-function EmptyDay({ onNew }: { onNew: () => void }) {
+// Leerer Tag: nur ein Hinweis; neue Anfrage über "+" neben dem Datum.
+function EmptyDay() {
   return (
     <View style={s.empty}>
       <MaterialIcons name="event-available" size={48} color={colors.muted} />
       <Text style={s.emptyText}>An diesem Tag haben Sie keine Anfragen.</Text>
-      <FilledButton icon="add" label="Neue Anfrage" onPress={onNew} />
     </View>
   );
 }
@@ -231,7 +230,7 @@ const s = StyleSheet.create({
   dateRow: { flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 8, paddingTop: 8 },
   dateText: { flex: 1, fontSize: 14, fontWeight: '500', color: colors.text },
   empty: { alignItems: 'center', paddingVertical: 32, paddingHorizontal: 24, gap: 12 },
-  emptyText: { color: colors.muted, textAlign: 'center', marginBottom: 4 },
+  emptyText: { color: colors.muted, textAlign: 'center' },
   tile: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 12, paddingVertical: 10 },
   avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   avatarImg: { width: 48, height: 48 },

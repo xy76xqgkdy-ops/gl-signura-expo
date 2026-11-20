@@ -4,14 +4,12 @@ import { View } from 'react-native';
 
 import { AppTextField, ErrorText, OutlineButton, PrimaryButton, Screen } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
-import { peek, put } from '../../lib/handoff';
-import { LocationData, parseLocation } from '../../lib/models';
+import { peek } from '../../lib/handoff';
+import { LocationData } from '../../lib/models';
 import { confirm } from '../../lib/theme';
 
 // Neuer eigener Ort (POST /me/locations) oder vorhandenen ändern
 // (PUT /me/locations/{id}) und löschen (DELETE /me/locations/{id}).
-// Ein neu gespeicherter Ort geht als 'location:created' zurück (für das
-// Anfrage-Formular).
 export default function LocationFormScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const found = params.id ? peek<LocationData>('location') : undefined;
@@ -41,8 +39,8 @@ export default function LocationFormScreen() {
       country: 'DE',
     };
     try {
-      const json = existing ? await api.putJson(`/me/locations/${existing.id}`, body) : await api.postJson('/me/locations', body);
-      if (!existing) put('location:created', parseLocation(json));
+      if (existing) await api.putJson(`/me/locations/${existing.id}`, body);
+      else await api.postJson('/me/locations', body);
       router.back();
     } catch (e) {
       setError(errorMessage(e));

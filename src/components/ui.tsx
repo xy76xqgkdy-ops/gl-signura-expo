@@ -53,8 +53,9 @@ export function AppTextField({
   secure = false,
   style,
   editable = true,
+  rightIcon,
   ...props
-}: TextInputProps & { label: string; secure?: boolean; style?: StyleProp<ViewStyle> }) {
+}: TextInputProps & { label: string; secure?: boolean; style?: StyleProp<ViewStyle>; rightIcon?: IconName }) {
   const [hidden, setHidden] = useState(secure);
   return (
     <View style={[styles.field, style]}>
@@ -69,6 +70,7 @@ export function AppTextField({
           placeholderTextColor={colors.hint}
           style={[styles.input, !editable && { color: colors.muted }]}
         />
+        {rightIcon && !secure && <MaterialIcons name={rightIcon} size={22} color={colors.muted} />}
         {secure && (
           <Pressable
             onPress={() => setHidden(!hidden)}

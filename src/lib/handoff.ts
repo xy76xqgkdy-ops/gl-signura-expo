@@ -4,7 +4,6 @@
 //
 //   'request'          Anfrage, die das Formular öffnen soll
 //   'location'         Ort, den das Ort-Formular öffnen soll
-//   'location:created' neu gespeicherter Ort (für das Anfrage-Formular)
 const store = new Map<string, unknown>();
 
 export function put(key: string, value: unknown) {

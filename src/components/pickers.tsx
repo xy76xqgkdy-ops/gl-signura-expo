@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { ReactNode, useState } from 'react';
-import { FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { addMonths, firstOfMonth, formatMonthYear, pad2, Time } from '../lib/dates';
 import { colors } from '../lib/theme';
@@ -162,58 +162,6 @@ export function OptionSheet({
   );
 }
 
-// Gespeicherten Ort suchen (Flutter: DropdownMenu mit Filter).
-export function SearchSheet<T extends { id: string }>({
-  visible,
-  items,
-  labelOf,
-  onPick,
-  onClose,
-}: {
-  visible: boolean;
-  items: T[];
-  labelOf: (t: T) => string;
-  onPick: (t: T) => void;
-  onClose: () => void;
-}) {
-  const [q, setQ] = useState('');
-  const shown = items.filter((i) => labelOf(i).toLowerCase().includes(q.trim().toLowerCase()));
-  return (
-    <Sheet visible={visible} onClose={onClose}>
-      <View style={s.search}>
-        <MaterialIcons name="search" size={22} color={colors.muted} />
-        <TextInput
-          value={q}
-          onChangeText={setQ}
-          placeholder="Ort suchen"
-          placeholderTextColor={colors.hint}
-          autoFocus
-          style={s.searchInput}
-        />
-      </View>
-      <FlatList
-        style={{ maxHeight: 300 }}
-        data={shown}
-        keyExtractor={(i) => i.id}
-        keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={<Text style={s.empty}>Kein Ort gefunden.</Text>}
-        renderItem={({ item }) => (
-          <Pressable
-            style={s.option}
-            onPress={() => {
-              onPick(item);
-              setQ('');
-              onClose();
-            }}
-          >
-            <Text style={s.optionText}>{labelOf(item)}</Text>
-          </Pressable>
-        )}
-      />
-    </Sheet>
-  );
-}
-
 // Ein Eintrag der Liste: Wert, Name und Flaggen-Emoji. Für einige Codes
 // gibt es statt der Flagge ein Logo (DGS).
 export type FlagItem = { value: string; name: string; flag: string };
@@ -282,16 +230,6 @@ const s = StyleSheet.create({
   actionText: { color: colors.primary, fontSize: 15, fontWeight: '600' },
   option: { paddingVertical: 14, paddingHorizontal: 12, borderRadius: 8 },
   optionText: { fontSize: 16, color: colors.text },
-  search: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.field,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginBottom: 8,
-  },
-  searchInput: { flex: 1, fontSize: 16, paddingVertical: 12, marginLeft: 8, color: colors.text },
-  empty: { color: colors.muted, textAlign: 'center', padding: 16 },
   listLabel: { fontSize: 14, fontWeight: '500', color: colors.text, marginBottom: 4 },
   listCard: {
     backgroundColor: colors.surface,
