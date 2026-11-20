@@ -30,7 +30,7 @@ export type RequestData = {
   locationEmail: string;
   locationPhone: string;
   interpreterName: string | null;
-  interpreterPicture: string | null;
+  interpreterPictures: string[]; // gebuchte Dolmetscher:innen, Data-URLs (höchstens 3)
   offerCount: number;
   status: RequestStatus;
 };
@@ -51,7 +51,9 @@ export function parseRequest(j: Json): RequestData {
     locationEmail: str(j.location_email),
     locationPhone: str(j.location_phone),
     interpreterName: nonEmpty(j.interpreter_name),
-    interpreterPicture: nonEmpty(j.interpreter_picture),
+    interpreterPictures: Array.isArray(j.interpreter_pictures)
+      ? j.interpreter_pictures.filter((p: unknown): p is string => typeof p === 'string' && p !== '')
+      : [],
     offerCount: typeof j.offer_count === 'number' ? j.offer_count : 0,
     status,
   };
@@ -63,12 +65,13 @@ export const addressText = (r: RequestData) =>
 
 export const timeRange = (r: RequestData) => `${formatTime(r.start)} – ${formatTime(r.end)}`;
 
-// Zusage eines Dolmetschers (GET /me/requests/{id}/offers), ohne Vermittler.
-export type OfferData = { id: string; interpreterName: string; status: string };
+// Zusage eines Dolmetschers (GET /me/requests/{id}/offers) mit Profilbild, ohne Vermittler.
+export type OfferData = { id: string; interpreterName: string; picture: string | null; status: string };
 
 export const parseOffer = (j: Json): OfferData => ({
   id: str(j.offer_id),
   interpreterName: str(j.interpreter_name),
+  picture: nonEmpty(j.picture), // Data-URL, fehlt ohne Bild
   status: str(j.status), // offered, awarded, declined
 });
 

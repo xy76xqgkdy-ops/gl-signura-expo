@@ -1,8 +1,9 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { AvatarStack } from '../components/Avatars';
 import { CalendarBadge, MonthCalendar } from '../components/MonthCalendar';
 import { Sheet } from '../components/pickers';
 import { StatusChip } from '../components/StatusChip';
@@ -201,13 +202,14 @@ function RequestTile({ request: r, onPress }: { request: RequestData; onPress: (
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [s.tile, pressed && { backgroundColor: colors.field }]}>
-      <View style={[s.avatar, { backgroundColor: color + '26' }]}>
-        {r.interpreterPicture ? (
-          <Image source={{ uri: r.interpreterPicture }} style={s.avatarImg} />
-        ) : (
+      {/* Gebucht mit Bild: Profilbilder der Dolmetscher:innen, sonst Symbol. */}
+      {r.interpreterPictures.length > 0 ? (
+        <AvatarStack pictures={r.interpreterPictures} />
+      ) : (
+        <View style={[s.avatar, { backgroundColor: color + '26' }]}>
           <MaterialIcons name={r.remote ? 'videocam' : 'place'} size={24} color={color} />
-        )}
-      </View>
+        </View>
+      )}
       <View style={{ flex: 1, marginHorizontal: 12 }}>
         <Text style={[s.tileTitle, cancelled && { textDecorationLine: 'line-through' }]} numberOfLines={1}>
           {timeRange(r)} · {place}
@@ -233,7 +235,6 @@ const s = StyleSheet.create({
   emptyText: { color: colors.muted, textAlign: 'center' },
   tile: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 12, paddingVertical: 10 },
   avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  avatarImg: { width: 48, height: 48 },
   tileTitle: { fontWeight: 'bold', fontSize: 15, color: colors.text },
   line: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
   lineText: { flex: 1, fontSize: 12, color: colors.muted, marginLeft: 4 },

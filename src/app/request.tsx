@@ -3,6 +3,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Avatar } from '../components/Avatars';
 import { DatePickerSheet, OptionSheet, TimePickerSheet } from '../components/pickers';
 import { StatusChip } from '../components/StatusChip';
 import {
@@ -236,6 +237,11 @@ export default function RequestFormScreen() {
           title: !existing ? 'Neue Anfrage' : editable ? 'Anfrage bearbeiten' : 'Anfrage',
           // Status oben rechts (bei neuer Anfrage gibt es noch keinen).
           headerRight: existing ? () => <StatusChip status={existing.status} /> : undefined,
+          // iOS 26 legt Elemente in der Kopfzeile sonst in eine Glas-Fläche;
+          // der Status ist kein Knopf: nur Punkt und Text, ohne Hintergrund.
+          unstable_headerRightItems: existing
+            ? () => [{ type: 'custom', element: <StatusChip status={existing.status} />, hidesSharedBackground: true }]
+            : undefined,
         }}
       />
       <Screen>
@@ -363,7 +369,7 @@ export default function RequestFormScreen() {
           </>
         )}
 
-        {/* Zusagen: offen → ankreuzen; gebucht → mit Haken; nur Namen. */}
+        {/* Zusagen: offen → ankreuzen; gebucht → mit Haken. Mit Profilbild, wenn vorhanden. */}
         {offers.length > 0 && (
           <View style={{ marginTop: 16 }}>
             <Text style={s.sectionTitle}>
@@ -373,14 +379,15 @@ export default function RequestFormScreen() {
               {shownOffers.map((o) =>
                 isOpen ? (
                   <Pressable key={o.id} style={s.offer} disabled={loading} onPress={() => toggle(o.id)}>
-                    <MaterialIcons name="record-voice-over" size={22} color={colors.muted} />
+                    <OfferPicture offer={o} />
                     <Text style={s.offerName}>{o.interpreterName}</Text>
                     <Checkbox checked={chosen.has(o.id)} />
                   </Pressable>
                 ) : (
                   <View key={o.id} style={s.offer}>
-                    <MaterialIcons name="check-circle" size={22} color={colors.success} />
+                    <OfferPicture offer={o} />
                     <Text style={s.offerName}>{o.interpreterName}</Text>
+                    <MaterialIcons name="check-circle" size={22} color={colors.success} />
                   </View>
                 ),
               )}
@@ -424,6 +431,16 @@ export default function RequestFormScreen() {
   );
 }
 
+// Profilbild der Dolmetscher:in, ohne Bild ein graues Symbol in gleicher Größe.
+function OfferPicture({ offer }: { offer: OfferData }) {
+  if (offer.picture) return <Avatar uri={offer.picture} size={48} />;
+  return (
+    <View style={s.noPicture}>
+      <MaterialIcons name="person" size={28} color={colors.muted} />
+    </View>
+  );
+}
+
 const s = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   hint: { marginBottom: 16, color: colors.text, lineHeight: 20 },
@@ -434,5 +451,6 @@ const s = StyleSheet.create({
   sectionTitle: { fontSize: 14, fontWeight: '500', marginBottom: 4, color: colors.text },
   offer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
   offerName: { flex: 1, fontSize: 15, color: colors.text },
+  noPicture: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.field, alignItems: 'center', justifyContent: 'center' },
   suggestion: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10 },
 });
