@@ -41,8 +41,11 @@ export default function ProfileScreen() {
   const [emailCode, setEmailCode] = useState('');
   const [mobileCode, setMobileCode] = useState('');
   const [language, setLanguage] = useState(str('language') || 'de_DE');
-  const [translation, setTranslation] = useState<string[]>(
-    Array.isArray(user?.translation_languages) ? user.translation_languages.filter((x: unknown) => typeof x === 'string') : [],
+  // Sprache für die Übersetzung: genau eine (Pflicht, Standard DGS).
+  const [translation, setTranslation] = useState<string>(
+    Array.isArray(user?.translation_languages) && typeof user.translation_languages[0] === 'string'
+      ? user.translation_languages[0]
+      : 'dgs',
   );
   const [allLanguages, setAllLanguages] = useState<FlagItem[]>([]);
 
@@ -88,8 +91,7 @@ export default function ProfileScreen() {
       email: email.trim(),
       mobile: mobile.trim(),
       language,
-      // Nur Sprachen, die das Backend noch anbietet (abgeschaltete fallen weg).
-      translation_languages: translation.filter((c) => allLanguages.some((l) => l.value === c)),
+      translation_languages: [translation],
       ...(withEmailCode ? { email_code: emailCode.trim() } : {}),
       ...(withMobileCode ? { mobile_code: mobileCode.trim() } : {}),
     });
@@ -179,15 +181,15 @@ export default function ProfileScreen() {
       {/* Sprache der App: genau eine; Antippen setzt das Häkchen um. */}
       <FlagCheckList label="Sprache der App" items={appLanguages} selected={[language]} onChange={(v) => setLanguage(v)} />
       <View style={{ height: 16 }} />
-      {/* Sprachen für die Übersetzung: mehrere, gewählte stehen oben. */}
+      {/* Sprache für die Übersetzung: genau eine; Antippen setzt das Häkchen um. */}
       {allLanguages.length === 0 ? (
         <ActivityIndicator color={colors.primary} />
       ) : (
         <FlagCheckList
           label="Welche Sprache brauchen Sie?"
           items={allLanguages}
-          selected={translation}
-          onChange={(code, on) => setTranslation((t) => (on ? [...t, code] : t.filter((c) => c !== code)))}
+          selected={[translation]}
+          onChange={(code) => setTranslation(code)}
         />
       )}
       <View style={{ height: 16 }} />
