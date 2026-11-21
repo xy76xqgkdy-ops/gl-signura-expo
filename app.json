@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "de.signura.app"
+      "bundleIdentifier": "de.gl.signura.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "de.signura.app"
+      "package": "de.gl.signura.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
