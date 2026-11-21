@@ -308,6 +308,7 @@ export const styles = StyleSheet.create({
   filled: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 24,
     paddingHorizontal: 20,
     paddingVertical: 11,

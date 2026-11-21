@@ -7,7 +7,7 @@ import { AvatarStack } from '../components/Avatars';
 import { CalendarBadge, MonthCalendar } from '../components/MonthCalendar';
 import { Sheet } from '../components/pickers';
 import { StatusChip } from '../components/StatusChip';
-import { Divider, ErrorText, IconName, RoundIconButton, Screen } from '../components/ui';
+import { Divider, ErrorText, FilledButton, IconName, Screen } from '../components/ui';
 import { api, ApiException, errorMessage } from '../lib/api';
 import { firstOfMonth, formatLongDate, formatMonthYear, sameDay, today } from '../lib/dates';
 import { put } from '../lib/handoff';
@@ -81,9 +81,10 @@ export default function HomeScreen() {
 
   const ofDay = requests.filter((r) => sameDay(r.start, selected));
 
-  const newRequest = () => {
+  // Neue Anfrage: mit festem Termin oder "Termin vereinbaren" (booking=arrange).
+  const newRequest = (booking: 'fixed' | 'arrange') => {
     const initial = selected < today() ? today() : selected;
-    router.push({ pathname: '/request', params: { date: initial.toISOString() } });
+    router.push({ pathname: '/request', params: { date: initial.toISOString(), booking } });
   };
 
   // Anfrage öffnen: bearbeiten, solange offen; sonst ansehen und ggf. absagen.
@@ -138,10 +139,17 @@ export default function HomeScreen() {
           loading={loading}
         />
         <Divider />
-        {/* Datum des Tages, rechts "+" für eine neue Anfrage. */}
+        {/* Datum des Tages, darunter neue Anfrage: eigener Termin oder Termin vereinbaren lassen. */}
         <View style={s.dateRow}>
           <Text style={s.dateText}>{formatLongDate(selected)}</Text>
-          <RoundIconButton icon="add" label="Neue Anfrage" onPress={newRequest} />
+        </View>
+        <View style={s.newRow}>
+          <View style={{ flex: 1 }}>
+            <FilledButton tonal icon="edit-calendar" label="Termin" onPress={() => newRequest('fixed')} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <FilledButton tonal icon="support-agent" label="Termin vereinbaren" onPress={() => newRequest('arrange')} />
+          </View>
         </View>
         {error ? (
           <ErrorText message={error} />
@@ -247,6 +255,7 @@ function RequestTile({ request: r, onPress }: { request: RequestData; onPress: (
 
 const s = StyleSheet.create({
   dateRow: { flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 8, paddingTop: 8 },
+  newRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 },
   dateText: { flex: 1, fontSize: 14, fontWeight: '500', color: colors.text },
   empty: { alignItems: 'center', paddingVertical: 32, paddingHorizontal: 24, gap: 12 },
   emptyText: { color: colors.muted, textAlign: 'center' },

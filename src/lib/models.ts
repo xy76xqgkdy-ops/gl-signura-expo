@@ -40,7 +40,6 @@ export type RequestData = {
   wishFrom: Date | null; // frühestens (Tag, Ortszeit)
   wishTo: Date | null; // spätestens
   timeOfDay: TimeOfDay;
-  urgent: boolean;
   note: string;
   arrangeState: ArrangeState | null;
   proposalStart: Date | null; // offener Terminvorschlag
@@ -92,7 +91,6 @@ export function parseRequest(j: Json): RequestData {
     wishFrom: parseDay(j.wish_from),
     wishTo: parseDay(j.wish_to),
     timeOfDay: TIMES_OF_DAY.some((t) => t.v === j.time_of_day) ? (j.time_of_day as TimeOfDay) : 'any',
-    urgent: j.urgent === true,
     note: str(j.note),
     arrangeState: (ARRANGE_STATES as string[]).includes(j.arrange_state) ? (j.arrange_state as ArrangeState) : null,
     proposalStart: optDate(j.proposal_start),
