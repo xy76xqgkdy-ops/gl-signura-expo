@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '../components/Avatars';
 import { DatePickerSheet, OptionSheet, TimePickerSheet } from '../components/pickers';
 import { StatusChip } from '../components/StatusChip';
+import { VideoCard } from '../components/VideoCard';
 import {
   AppTextField,
   Card,
@@ -370,6 +371,8 @@ export default function RequestFormScreen() {
       />
       <Screen>
         {existing && !editable && existing.status !== 'cancelled' && <Text style={s.hint}>{lockedHint(existing)}</Text>}
+        {/* Gebucht per Video: Knopf "Video starten" ab 15 Minuten vorher. */}
+        {existing && existing.status === 'confirmed' && existing.remote && <VideoCard requestId={existing.id} />}
 
         {/* Kurze Erklärung in einfacher Sprache, solange man eingeben kann. */}
         {editable && (
