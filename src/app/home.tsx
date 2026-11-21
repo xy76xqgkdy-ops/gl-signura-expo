@@ -11,7 +11,7 @@ import { Divider, ErrorText, IconName, RoundIconButton, Screen } from '../compon
 import { api, ApiException, errorMessage } from '../lib/api';
 import { firstOfMonth, formatLongDate, formatMonthYear, sameDay, today } from '../lib/dates';
 import { put } from '../lib/handoff';
-import { addressText, parseRequest, RequestData, STATUS, STATUS_ORDER, timeRange } from '../lib/models';
+import { addressText, arrangeText, parseRequest, RequestData, STATUS, STATUS_ORDER, timeRange, wishText } from '../lib/models';
 import { onPushReceived, syncPush } from '../lib/push';
 import { logout, useSession } from '../lib/session';
 import { colors } from '../lib/theme';
@@ -190,14 +190,17 @@ function EmptyDay() {
 //   Zeile 2 klein: Video + Dolmetscher bzw. Karte + Straße, PLZ Ort
 //   Zeile 3 klein (nur vor Ort): Dolmetscher
 //   rechts  Status
+// Terminsuche (noch kein Termin): Zeitraum statt Uhrzeit, Stand statt Dolmetscher.
 function RequestTile({ request: r, onPress }: { request: RequestData; onPress: () => void }) {
   const cancelled = r.status === 'cancelled';
   // Gebucht: Namen; offen: Zahl der Zusagen.
-  const interpreter = r.interpreterName
-    ? r.interpreterName
-    : r.status === 'new' && r.offerCount > 0
-      ? `${r.offerCount} ${r.offerCount === 1 ? 'Zusage' : 'Zusagen'}`
-      : 'noch keine Zusage';
+  const interpreter = r.arrangeState
+    ? arrangeText(r)
+    : r.interpreterName
+      ? r.interpreterName
+      : r.status === 'new' && r.offerCount > 0
+        ? `${r.offerCount} ${r.offerCount === 1 ? 'Zusage' : 'Zusagen'}`
+        : 'noch keine Zusage';
   const place = r.locationName || r.purpose;
   const color = STATUS[r.status].color;
 
@@ -217,12 +220,16 @@ function RequestTile({ request: r, onPress }: { request: RequestData; onPress: (
         <AvatarStack pictures={r.interpreterPictures} />
       ) : (
         <View style={[s.avatar, { backgroundColor: color + '26' }]}>
-          <MaterialIcons name={r.remote ? 'videocam' : 'place'} size={24} color={color} />
+          <MaterialIcons
+            name={r.arrangeState && r.arrangeState !== 'cancelled' ? 'event-note' : r.remote ? 'videocam' : 'place'}
+            size={24}
+            color={color}
+          />
         </View>
       )}
       <View style={{ flex: 1, marginHorizontal: 12 }}>
         <Text style={[s.tileTitle, cancelled && { textDecorationLine: 'line-through' }]} numberOfLines={1}>
-          {timeRange(r)} · {place}
+          {r.arrangeState ? wishText(r) : timeRange(r)} · {place}
         </Text>
         {r.remote ? (
           line('videocam', interpreter)

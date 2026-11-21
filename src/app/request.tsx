@@ -1,7 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Avatar } from '../components/Avatars';
 import { DatePickerSheet, OptionSheet, TimePickerSheet } from '../components/pickers';
@@ -17,10 +17,21 @@ import {
   TapField,
 } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
-import { at, dateOnly, formatDate, formatHM, formatTime, Time, timeOf, today } from '../lib/dates';
+import { at, dateOnly, formatDate, formatHM, formatLongDate, formatTime, Time, timeOf, today } from '../lib/dates';
 import { peek } from '../lib/handoff';
 import { openRoute } from '../lib/maps';
-import { LocationData, locationAddress, OfferData, parseLocation, parseOffer, RequestData } from '../lib/models';
+import {
+  dayString,
+  LocationData,
+  locationAddress,
+  OfferData,
+  parseLocation,
+  parseOffer,
+  RequestData,
+  shortDay,
+  TimeOfDay,
+  TIMES_OF_DAY,
+} from '../lib/models';
 import { colors, confirm } from '../lib/theme';
 
 // Auswahl für den Grund. Ein älterer, freier Grund einer vorhandenen
@@ -33,6 +44,12 @@ const PURPOSES = ['Arzt', 'Arbeit', 'Behörde', 'Privat', 'Sonstige'];
 //
 // Ändern geht nur, solange die Anfrage offen ist und es keine Zusagen gibt;
 // absagen, solange der Termin noch bevorsteht (das prüft auch das Backend).
+//
+// Terminsuche ("Bitte Termin vereinbaren", booking "arrange"): statt Datum
+// und Uhrzeit ein Zeitraum (frühestens/spätestens), Tageszeit und
+// "dringend"; Name und Telefon der Praxis sind Pflicht. Ein Vermittler
+// vereinbart den Termin und schlägt ihn vor; hier annehmen
+// (POST …/proposal/accept) oder ablehnen (POST …/proposal/decline).
 export default function RequestFormScreen() {
   const params = useLocalSearchParams<{ id?: string; date?: string }>();
   const found = params.id ? peek<RequestData>('request') : undefined;
@@ -42,6 +59,14 @@ export default function RequestFormScreen() {
   const [startTime, setStartTime] = useState<Time>(existing ? timeOf(existing.start) : { hour: 9, minute: 0 });
   const [endTime, setEndTime] = useState<Time>(existing ? timeOf(existing.end) : { hour: 10, minute: 0 });
   const [remote, setRemote] = useState(existing?.remote ?? false);
+
+  // Terminsuche: nur solange kein Termin angenommen ist (arrangeState gesetzt).
+  const [arrange, setArrange] = useState(!!existing?.arrangeState);
+  const [wishFrom, setWishFrom] = useState<Date>(existing?.wishFrom ?? dateOnly(params.date ? new Date(params.date) : today()));
+  const [wishTo, setWishTo] = useState<Date>(existing?.wishTo ?? addDays(wishFrom, 7));
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(existing?.timeOfDay ?? 'any');
+  const [urgent, setUrgent] = useState(existing?.urgent ?? false);
+  const [note, setNote] = useState(existing?.note ?? '');
   const [purpose, setPurpose] = useState<string | null>(existing?.purpose ?? null);
   const purposeOptions = [...PURPOSES, ...(existing && !PURPOSES.includes(existing.purpose) ? [existing.purpose] : [])];
 
@@ -65,14 +90,21 @@ export default function RequestFormScreen() {
   const [offers, setOffers] = useState<OfferData[]>([]);
   const [chosen, setChosen] = useState<Set<string>>(new Set());
 
-  const [picker, setPicker] = useState<'date' | 'start' | 'end' | 'purpose' | null>(null);
+  const [picker, setPicker] = useState<'date' | 'start' | 'end' | 'purpose' | 'wishFrom' | 'wishTo' | null>(null);
 
   const isOpen = existing?.status === 'new';
-  // Neue Anfrage oder offene ohne Zusagen: alle Felder änderbar.
-  const editable = !existing || (isOpen && existing.offerCount === 0);
+  // Neue Anfrage oder offene ohne Zusagen (Terminsuche: noch kein Vermittler): alle Felder änderbar.
+  const editable =
+    !existing ||
+    (isOpen && existing.offerCount === 0 && (existing.booking === 'fixed' || existing.arrangeState === 'searching'));
   const openOffers = offers.filter((o) => o.status === 'offered');
+  const proposal = offers.filter((o) => o.status === 'proposed');
+  const proposalStart = proposal[0]?.proposedStart ?? null;
+  const proposalEnd = proposal[0]?.proposedEnd ?? null;
   const canAward = isOpen && chosen.size > 0 && !loading;
-  const canCancel = !!existing && existing.status !== 'cancelled' && existing.start > new Date();
+  // Terminsuche ohne Termin: jederzeit absagen; sonst bis zum Beginn.
+  const canCancel =
+    !!existing && existing.status !== 'cancelled' && (existing.start > new Date() || (isOpen && !!existing.arrangeState));
 
   const loadOffers = useCallback(async () => {
     if (!existing) return;
@@ -97,7 +129,7 @@ export default function RequestFormScreen() {
         setError(errorMessage(e));
       }
     })();
-    if (existing && (existing.offerCount > 0 || existing.status === 'confirmed')) {
+    if (existing && (existing.offerCount > 0 || existing.status === 'confirmed' || existing.arrangeState === 'proposed')) {
       api
         .getJsonList(`/me/requests/${existing.id}/offers`)
         .then((list) => setOffers(list.map(parseOffer)))
@@ -128,10 +160,16 @@ export default function RequestFormScreen() {
   const endAt = at(date, endTime);
   const canSave =
     !!purpose &&
-    endAt > startAt &&
+    (arrange ? locName.trim() !== '' && locPhone.trim() !== '' && wishTo >= wishFrom : endAt > startAt) &&
     (remote || [locStreet, locPostal, locCity].every((v) => v.trim() !== '')) &&
     editable &&
     !loading;
+
+  // Frühestens nach Spätestens geschoben: Spätestens mitziehen.
+  const pickWishFrom = (d: Date) => {
+    setWishFrom(d);
+    if (wishTo < d) setWishTo(d);
+  };
 
   const pickStart = (t: Time) => {
     // Ende mitschieben, damit die Dauer gleich bleibt.
@@ -168,6 +206,11 @@ export default function RequestFormScreen() {
         location_city: locCity.trim(),
         location_email: locEmail.trim(),
         location_phone: locPhone.trim(),
+        booking: arrange ? 'arrange' : 'fixed',
+        ...(arrange
+          ? { wish_from: dayString(wishFrom), wish_to: dayString(wishTo), time_of_day: timeOfDay, urgent }
+          : {}),
+        note: arrange ? note.trim() : '',
       };
       if (existing) await api.putJson(`/me/requests/${existing.id}`, body);
       else await api.postJson('/me/requests', body);
@@ -177,7 +220,9 @@ export default function RequestFormScreen() {
     if (!existing) return;
     const ok = await confirm({
       title: 'Anfrage absagen?',
-      message: `${existing.purpose} am ${formatDate(existing.start)} um ${formatTime(existing.start)} Uhr wird abgesagt. Sie können das nicht rückgängig machen.`,
+      message: existing.arrangeState
+        ? `Die Terminsuche (${existing.purpose}) wird abgesagt. Sie können das nicht rückgängig machen.`
+        : `${existing.purpose} am ${formatDate(existing.start)} um ${formatTime(existing.start)} Uhr wird abgesagt. Sie können das nicht rückgängig machen.`,
       ok: 'Absagen',
       cancel: 'Nicht absagen',
       destructive: true,
@@ -212,8 +257,41 @@ export default function RequestFormScreen() {
     }
   }
 
+  // Terminvorschlag annehmen: Termin ist dann gebucht.
+  async function acceptProposal() {
+    if (!existing || !proposalStart || !proposalEnd) return;
+    const ok = await confirm({
+      title: 'Termin annehmen?',
+      message: `${shortDay(proposalStart)}, ${formatTime(proposalStart)} – ${formatTime(proposalEnd)} Uhr\nmit ${proposal
+        .map((o) => o.interpreterName)
+        .join(', ')}\n\nDer Termin ist dann gebucht.`,
+      ok: 'annehmen',
+      cancel: 'Abbrechen',
+    });
+    if (ok) run(() => api.postJson(`/me/requests/${existing.id}/proposal/accept`).then(() => {}));
+  }
+
+  // Terminvorschlag ablehnen: Der Vermittler sucht einen anderen Termin.
+  async function declineProposal() {
+    if (!existing) return;
+    const ok = await confirm({
+      title: 'Vorschlag ablehnen?',
+      message: 'Der Vermittler sucht dann einen anderen Termin für Sie.',
+      ok: 'ablehnen',
+      cancel: 'Abbrechen',
+      destructive: true,
+    });
+    if (ok) run(() => api.postJson(`/me/requests/${existing.id}/proposal/decline`).then(() => {}));
+  }
+
   // Warum die Anfrage nicht mehr änderbar ist.
   function lockedHint(r: RequestData) {
+    if (r.arrangeState === 'in_progress') {
+      return 'Ein Vermittler vereinbart gerade den Termin mit der Praxis. Sie bekommen eine Mitteilung, sobald es einen Vorschlag gibt. Sie können die Anfrage absagen.';
+    }
+    if (r.arrangeState === 'proposed') {
+      return 'Der Vermittler hat einen Termin vereinbart. Bitte nehmen Sie ihn an oder lehnen Sie ihn ab.';
+    }
     if (r.status === 'confirmed') return `Gebucht${r.interpreterName ? `: ${r.interpreterName}` : ''}. Sie können den Termin absagen.`;
     if (r.status === 'new' && r.offerCount > 0) {
       return 'Es gibt Zusagen. Kreuzen Sie an, wen Sie buchen möchten. Sie können die Anfrage nicht mehr ändern. Sie können sie absagen und eine neue Anfrage stellen.';
@@ -252,6 +330,30 @@ export default function RequestFormScreen() {
           <Text style={s.hint}>{lockedHint(existing)}</Text>
         )}
 
+        {/* Termin steht fest oder soll vereinbart werden (nur solange änderbar). */}
+        {editable && (
+          <View style={[s.segment, s.segWide]}>
+            {[
+              { v: false, label: 'Ich habe einen Termin' },
+              { v: true, label: 'Bitte Termin vereinbaren' },
+            ].map((o, i) => (
+              <Pressable
+                key={o.label}
+                onPress={() => setArrange(o.v)}
+                style={[s.segItem, s.segFlex, i === 0 && s.segFirst, arrange === o.v && { backgroundColor: colors.tonal }]}
+              >
+                <Text style={s.segText}>{o.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+        {editable && arrange && (
+          <Text style={s.hint}>
+            Ein Vermittler ruft für Sie in der Praxis an, vereinbart den Termin und bucht eine Dolmetscher:in. Sie bekommen
+            den Vorschlag als Mitteilung und bestätigen ihn.
+          </Text>
+        )}
+
         {/* Grund und vor Ort / per Video in einer Zeile. */}
         <View style={s.row}>
           <TapField
@@ -280,31 +382,78 @@ export default function RequestFormScreen() {
           </View>
         </View>
 
-        <TapField icon="calendar-today" label="Datum" value={formatDate(date)} disabled={!editable} onPress={() => setPicker('date')} />
-        <View style={s.row}>
-          <TapField
-            style={{ flex: 1, marginRight: 12 }}
-            icon="schedule"
-            label="Beginn"
-            value={formatHM(startTime)}
-            disabled={!editable}
-            onPress={() => setPicker('start')}
-          />
-          <TapField
-            style={{ flex: 1 }}
-            icon="schedule"
-            label="Ende"
-            value={formatHM(endTime)}
-            disabled={!editable}
-            onPress={() => setPicker('end')}
-          />
-        </View>
+        {arrange ? (
+          <>
+            {/* Terminsuche: Zeitraum, Tageszeit, dringend. */}
+            <View style={s.row}>
+              <TapField
+                style={{ flex: 1, marginRight: 12 }}
+                icon="calendar-today"
+                label="Frühestens"
+                value={formatDate(wishFrom)}
+                disabled={!editable}
+                onPress={() => setPicker('wishFrom')}
+              />
+              <TapField
+                style={{ flex: 1 }}
+                icon="calendar-today"
+                label="Spätestens"
+                value={formatDate(wishTo)}
+                disabled={!editable}
+                onPress={() => setPicker('wishTo')}
+              />
+            </View>
+            <View style={[s.segment, s.segWide, !editable && { opacity: 0.5 }]}>
+              {TIMES_OF_DAY.map((o, i) => (
+                <Pressable
+                  key={o.v}
+                  disabled={!editable}
+                  onPress={() => setTimeOfDay(o.v)}
+                  style={[s.segItem, s.segFlex, i > 0 && s.segLeft, timeOfDay === o.v && { backgroundColor: colors.tonal }]}
+                >
+                  <Text style={s.segText}>{o.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <View style={[s.row, s.switchRow]}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.switchLabel}>Dringend</Text>
+                <Text style={s.switchHint}>Termin so schnell wie möglich</Text>
+              </View>
+              <Switch value={urgent} onValueChange={setUrgent} disabled={!editable} trackColor={{ true: colors.primary }} />
+            </View>
+          </>
+        ) : (
+          <>
+            <TapField icon="calendar-today" label="Datum" value={formatDate(date)} disabled={!editable} onPress={() => setPicker('date')} />
+            <View style={s.row}>
+              <TapField
+                style={{ flex: 1, marginRight: 12 }}
+                icon="schedule"
+                label="Beginn"
+                value={formatHM(startTime)}
+                disabled={!editable}
+                onPress={() => setPicker('start')}
+              />
+              <TapField
+                style={{ flex: 1 }}
+                icon="schedule"
+                label="Ende"
+                value={formatHM(endTime)}
+                disabled={!editable}
+                onPress={() => setPicker('end')}
+              />
+            </View>
+          </>
+        )}
 
         {/* Name des Orts mit Suche: Tippen zeigt passende Orte aus "Meine Orte", Antippen
             übernimmt die Adresse. Ein neuer Ort landet beim Speichern der Anfrage automatisch
             in "Meine Orte" (macht das Backend, wenn Name, Straße, PLZ und Ort neu sind). */}
         <AppTextField
-          label={remote ? 'Name (z. B. Gesprächspartner)' : 'Name des Orts (z. B. Praxis Dr. Müller)'}
+          label={
+            arrange ? 'Name der Praxis (z. B. Praxis Dr. Müller)' : remote ? 'Name (z. B. Gesprächspartner)' : 'Name des Orts (z. B. Praxis Dr. Müller)'
+          }
           placeholder={editable ? 'Name eingeben oder suchen' : undefined}
           rightIcon={editable ? 'search' : undefined}
           value={locName}
@@ -334,6 +483,16 @@ export default function RequestFormScreen() {
               </Pressable>
             ))}
           </Card>
+        )}
+        {/* Terminsuche: Der Vermittler ruft in der Praxis an. */}
+        {arrange && (
+          <AppTextField
+            label="Telefon der Praxis"
+            value={locPhone}
+            onChangeText={setLocPhone}
+            keyboardType="phone-pad"
+            editable={editable}
+          />
         )}
         {/* Adresse und Kontakt: bei "per Video" ausgeblendet, aber aus dem gewählten Ort trotzdem mitgespeichert. */}
         {!remote && (
@@ -367,7 +526,7 @@ export default function RequestFormScreen() {
             )}
             <View style={s.row}>
               <AppTextField
-                style={{ flex: 1, marginRight: 12 }}
+                style={{ flex: 1, marginRight: arrange ? 0 : 12 }}
                 label="E-Mail (optional)"
                 value={locEmail}
                 onChangeText={setLocEmail}
@@ -375,20 +534,62 @@ export default function RequestFormScreen() {
                 autoCapitalize="none"
                 editable={editable}
               />
-              <AppTextField
-                style={{ flex: 1 }}
-                label="Telefon (optional)"
-                value={locPhone}
-                onChangeText={setLocPhone}
-                keyboardType="phone-pad"
-                editable={editable}
-              />
+              {!arrange && (
+                <AppTextField
+                  style={{ flex: 1 }}
+                  label="Telefon (optional)"
+                  value={locPhone}
+                  onChangeText={setLocPhone}
+                  keyboardType="phone-pad"
+                  editable={editable}
+                />
+              )}
             </View>
           </>
         )}
+        {arrange && (
+          <AppTextField
+            label="Hinweis für den Vermittler (optional)"
+            placeholder={editable ? 'z. B. nur Montag und Mittwoch' : undefined}
+            value={note}
+            onChangeText={setNote}
+            multiline
+            maxLength={500}
+            editable={editable}
+          />
+        )}
+
+        {/* Terminvorschlag des Vermittlers: Termin und Dolmetscher:innen, annehmen oder ablehnen. */}
+        {existing?.arrangeState === 'proposed' && proposalStart && proposalEnd && (
+          <View style={{ marginTop: 16 }}>
+            <Text style={s.sectionTitle}>Terminvorschlag</Text>
+            <Card>
+              <View style={s.offer}>
+                <MaterialIcons name="event-available" size={28} color={colors.primary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={s.proposalDate}>{formatLongDate(proposalStart)}</Text>
+                  <Text style={s.offerName}>
+                    {formatTime(proposalStart)} – {formatTime(proposalEnd)} Uhr
+                  </Text>
+                </View>
+              </View>
+              {proposal.map((o) => (
+                <View key={o.id} style={s.offer}>
+                  <OfferPicture offer={o} />
+                  <Text style={s.offerName}>{o.interpreterName}</Text>
+                </View>
+              ))}
+            </Card>
+            <View style={[s.row, { marginTop: 12, gap: 12 }]}>
+              <View style={{ flex: 1 }} />
+              <OutlineButton icon="close" label="ablehnen" disabled={loading} onPress={declineProposal} />
+              <PrimaryButton label="annehmen" loading={loading} onPress={acceptProposal} />
+            </View>
+          </View>
+        )}
 
         {/* Zusagen: offen → ankreuzen; gebucht → mit Haken. Mit Profilbild, wenn vorhanden. */}
-        {offers.length > 0 && (
+        {shownOffers.length > 0 && (
           <View style={{ marginTop: 16 }}>
             <Text style={s.sectionTitle}>
               {isOpen ? `Zusagen: ${chosen.size} ausgewählt` : 'Gebuchte Dolmetscher'}
@@ -436,6 +637,16 @@ export default function RequestFormScreen() {
           onClose={() => setPicker(null)}
         />
       )}
+      {(picker === 'wishFrom' || picker === 'wishTo') && (
+        <DatePickerSheet
+          visible
+          value={picker === 'wishFrom' ? wishFrom : wishTo}
+          min={picker === 'wishFrom' ? today() : wishFrom}
+          max={addDays(today(), 365)}
+          onPick={picker === 'wishFrom' ? pickWishFrom : setWishTo}
+          onClose={() => setPicker(null)}
+        />
+      )}
       {(picker === 'start' || picker === 'end') && (
         <TimePickerSheet
           visible
@@ -448,6 +659,8 @@ export default function RequestFormScreen() {
     </>
   );
 }
+
+const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 
 // Profilbild der Dolmetscher:in, ohne Bild ein graues Symbol in gleicher Größe.
 function OfferPicture({ offer }: { offer: OfferData }) {
@@ -465,6 +678,13 @@ const s = StyleSheet.create({
   segment: { flexDirection: 'row', borderWidth: 1, borderColor: colors.outline, borderRadius: 20, overflow: 'hidden', marginBottom: 12 },
   segItem: { paddingHorizontal: 12, paddingVertical: 10 },
   segFirst: { borderRightWidth: 1, borderRightColor: colors.outline },
+  segLeft: { borderLeftWidth: 1, borderLeftColor: colors.outline },
+  segWide: { alignSelf: 'stretch' },
+  segFlex: { flex: 1, alignItems: 'center' },
+  switchRow: { marginBottom: 12, paddingHorizontal: 4 },
+  switchLabel: { fontSize: 15, color: colors.text },
+  switchHint: { fontSize: 12, color: colors.muted },
+  proposalDate: { fontSize: 15, fontWeight: 'bold', color: colors.text },
   segText: { fontSize: 14, color: colors.text },
   sectionTitle: { fontSize: 14, fontWeight: '500', marginBottom: 4, color: colors.text },
   offer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, gap: 12 },
