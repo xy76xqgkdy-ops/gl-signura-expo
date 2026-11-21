@@ -19,7 +19,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "de.gl.signura.app",
-      "permissions": [
+      "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -33,7 +33,8 @@
         "expo-image-picker",
         {
           "photosPermission": "Signura braucht Zugriff auf Ihre Fotos für das Profilbild.",
-          "cameraPermission": "Signura braucht die Kamera für das Profilbild."
+          "cameraPermission": "Signura braucht die Kamera für das Profilbild.",
+          "microphonePermission": false
         }
       ],
       "expo-font",
