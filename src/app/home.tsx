@@ -1,6 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, Stack, useFocusEffect } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AvatarStack } from '../components/Avatars';
@@ -12,7 +12,8 @@ import { api, ApiException, errorMessage } from '../lib/api';
 import { firstOfMonth, formatLongDate, formatMonthYear, sameDay, today } from '../lib/dates';
 import { put } from '../lib/handoff';
 import { addressText, parseRequest, RequestData, STATUS, STATUS_ORDER, timeRange } from '../lib/models';
-import { logout } from '../lib/session';
+import { onPushReceived, syncPush } from '../lib/push';
+import { logout, useSession } from '../lib/session';
 import { colors } from '../lib/theme';
 
 // Startseite: Monatskalender mit den eigenen Anfragen (farbige Zähler je
@@ -49,6 +50,15 @@ export default function HomeScreen() {
       setLoading(false);
     }
   }, []);
+
+  // Push: Gerät beim Backend anmelden (ohne zu fragen, nur wenn erlaubt);
+  // kommt eine Mitteilung bei offener App, die Liste neu laden.
+  const { user } = useSession();
+  const notifyPush = user?.notify_push !== false;
+  useEffect(() => {
+    syncPush(notifyPush);
+    return onPushReceived(() => load());
+  }, [notifyPush, load]);
 
   // Beim Öffnen und bei jeder Rückkehr (z. B. nach Speichern einer Anfrage) neu laden.
   useFocusEffect(

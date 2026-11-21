@@ -1,11 +1,16 @@
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 
+import { onPushTapped } from '../lib/push';
 import { SessionProvider } from '../lib/session';
 import { colors } from '../lib/theme';
 
 // Alle Seiten als Stapel (Flutter: Navigator mit MaterialPageRoute).
 export default function RootLayout() {
+  // Mitteilung angetippt → Hauptseite (lädt dort neu).
+  useEffect(() => onPushTapped(() => router.navigate('/home')), []);
+
   return (
     <SessionProvider>
       <StatusBar style="dark" />
