@@ -189,57 +189,87 @@ export function FilledButton({
   onPress,
   disabled,
   tonal = false,
+  small = false,
 }: {
   label: string;
   icon?: IconName;
   onPress: () => void;
   disabled?: boolean;
   tonal?: boolean;
+  small?: boolean; // kleiner, z. B. die zwei Knöpfe auf der Hauptseite
 }) {
   const fg = tonal ? colors.onTonal : colors.onPrimary;
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      style={[styles.filled, { backgroundColor: tonal ? colors.tonal : colors.primary, opacity: disabled ? 0.5 : 1 }]}
+      style={[
+        styles.filled,
+        small && { paddingHorizontal: 12, paddingVertical: 7 },
+        { backgroundColor: tonal ? colors.tonal : colors.primary, opacity: disabled ? 0.5 : 1 },
+      ]}
       accessibilityRole="button"
     >
-      {icon && <MaterialIcons name={icon} size={18} color={fg} style={{ marginRight: 6 }} />}
-      <Text style={{ color: fg, fontSize: 15, fontWeight: '500' }}>{label}</Text>
+      {icon && <MaterialIcons name={icon} size={small ? 16 : 18} color={fg} style={{ marginRight: 6 }} />}
+      <Text style={{ color: fg, fontSize: small ? 13 : 15, fontWeight: '500' }} numberOfLines={1}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
 // Runder Knopf nur mit Symbol (Flutter: IconButton.filledTonal / outlined).
+// tooltip: längerer Text, der beim Darüberfahren mit der Maus (Web) bzw.
+// langem Drücken (Handy) unter dem Knopf erscheint, rechtsbündig.
 export function RoundIconButton({
   icon,
   onPress,
   label,
   disabled,
   variant = 'tonal',
+  tooltip,
 }: {
   icon: IconName;
   onPress: () => void;
   label: string;
   disabled?: boolean;
   variant?: 'tonal' | 'outlined' | 'plain';
+  tooltip?: string;
 }) {
+  const [tip, setTip] = useState(false);
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityLabel={label}
-      accessibilityRole="button"
-      hitSlop={4}
-      style={[
-        styles.round,
-        variant === 'tonal' && { backgroundColor: colors.tonal },
-        variant === 'outlined' && { borderWidth: 1, borderColor: colors.outline },
-        disabled && { opacity: 0.35 },
-      ]}
-    >
-      <MaterialIcons name={icon} size={24} color={variant === 'tonal' ? colors.onTonal : colors.text} />
-    </Pressable>
+    <View style={{ position: 'relative', zIndex: tip ? 10 : 0 }}>
+      <Pressable
+        onPress={onPress}
+        onHoverIn={tooltip ? () => setTip(true) : undefined}
+        onHoverOut={tooltip ? () => setTip(false) : undefined}
+        onLongPress={
+          tooltip
+            ? () => {
+                setTip(true);
+                setTimeout(() => setTip(false), 2500);
+              }
+            : undefined
+        }
+        disabled={disabled}
+        accessibilityLabel={tooltip ?? label}
+        accessibilityRole="button"
+        hitSlop={4}
+        style={[
+          styles.round,
+          variant === 'tonal' && { backgroundColor: colors.tonal },
+          variant === 'outlined' && { borderWidth: 1, borderColor: colors.outline },
+          disabled && { opacity: 0.35 },
+        ]}
+      >
+        <MaterialIcons name={icon} size={24} color={variant === 'tonal' ? colors.onTonal : colors.text} />
+      </Pressable>
+      {tip && tooltip && (
+        <View style={styles.tooltip} pointerEvents="none">
+          <Text style={styles.tooltipText}>{tooltip}</Text>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -314,6 +344,17 @@ export const styles = StyleSheet.create({
     paddingVertical: 11,
   },
   round: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  tooltip: {
+    position: 'absolute',
+    top: 50,
+    right: 0,
+    width: 220,
+    backgroundColor: colors.text,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  tooltipText: { color: colors.surface, fontSize: 13, lineHeight: 18 },
   error: { color: colors.error, fontSize: 13, textAlign: 'center', marginVertical: 20 },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.outline },
   card: {

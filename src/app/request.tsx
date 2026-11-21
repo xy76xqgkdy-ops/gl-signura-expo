@@ -644,13 +644,13 @@ export default function RequestFormScreen() {
                 isOpen ? (
                   <Pressable key={o.id} style={s.offer} disabled={loading} onPress={() => toggle(o.id)}>
                     <OfferPicture offer={o} />
-                    <Text style={s.offerName}>{o.interpreterName}</Text>
+                    <OfferName offer={o} />
                     <Checkbox checked={chosen.has(o.id)} />
                   </Pressable>
                 ) : (
                   <View key={o.id} style={s.offer}>
                     <OfferPicture offer={o} />
-                    <Text style={s.offerName}>{o.interpreterName}</Text>
+                    <OfferName offer={o} />
                     <MaterialIcons name="check-circle" size={22} color={colors.success} />
                   </View>
                 ),
@@ -718,6 +718,16 @@ export default function RequestFormScreen() {
 
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 
+// Name der Dolmetscher:in; eigene aus "Meine DolmetscherInnen" mit Zusatz.
+function OfferName({ offer }: { offer: OfferData }) {
+  return (
+    <View style={{ flex: 1 }}>
+      <Text style={s.offerName}>{offer.interpreterName}</Text>
+      {offer.own && <Text style={s.ownLabel}>Mein Dolmetscher</Text>}
+    </View>
+  );
+}
+
 // Profilbild der Dolmetscher:in, ohne Bild ein graues Symbol in gleicher Größe.
 function OfferPicture({ offer }: { offer: OfferData }) {
   if (offer.picture) return <Avatar uri={offer.picture} size={48} />;
@@ -769,6 +779,7 @@ const s = StyleSheet.create({
     gap: 12,
   },
   offerName: { flex: 1, fontSize: 15, color: colors.text },
+  ownLabel: { fontSize: 12, color: colors.primary, marginTop: 2 },
   routeButton: {
     flexDirection: 'row',
     alignItems: 'center',

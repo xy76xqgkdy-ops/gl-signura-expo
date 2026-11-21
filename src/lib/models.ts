@@ -133,6 +133,23 @@ export const addressText = (r: RequestData) =>
 
 export const timeRange = (r: RequestData) => `${formatTime(r.start)} – ${formatTime(r.end)}`;
 
+// Eigener Wunsch-Dolmetscher (GET /me/interpreters).
+export type InterpreterStatus = 'invited' | 'accepted' | 'declined';
+export const INTERPRETER_STATUS: Record<InterpreterStatus, { text: string; color: string }> = {
+  invited: { text: 'Eingeladen, noch keine Antwort', color: '#FF9800' },
+  accepted: { text: 'Einverstanden, bekommt Ihre Anfragen', color: '#4CAF50' },
+  declined: { text: 'Nicht einverstanden', color: '#9E9E9E' },
+};
+export type InterpreterData = { id: string; name: string; email: string; status: InterpreterStatus; invitedAt: Date };
+
+export const parseInterpreter = (j: Json): InterpreterData => ({
+  id: str(j.id),
+  name: str(j.name),
+  email: str(j.email),
+  status: j.status === 'accepted' || j.status === 'declined' ? j.status : 'invited',
+  invitedAt: new Date(j.invited_at),
+});
+
 // Zusage eines Dolmetschers (GET /me/requests/{id}/offers) mit Profilbild, ohne Vermittler.
 // Terminvorschlag: status "proposed" mit proposedStart/-End.
 export type OfferData = {
@@ -142,6 +159,7 @@ export type OfferData = {
   status: string;
   proposedStart: Date | null;
   proposedEnd: Date | null;
+  own: boolean; // aus "Meine DolmetscherInnen"
 };
 
 export const parseOffer = (j: Json): OfferData => ({
@@ -151,6 +169,7 @@ export const parseOffer = (j: Json): OfferData => ({
   status: str(j.status), // offered, proposed, awarded, declined
   proposedStart: optDate(j.proposed_start),
   proposedEnd: optDate(j.proposed_end),
+  own: j.own === true,
 });
 
 // Ein eigener Ort (GET/POST /me/locations).

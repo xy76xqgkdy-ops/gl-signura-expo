@@ -80,7 +80,7 @@ export default function LocationListScreen() {
         ) : error ? (
           <ErrorText message={error} />
         ) : locations.length === 0 ? (
-          <ErrorText message="Sie haben noch keine Orte gespeichert. Tippen Sie auf +." />
+          <ErrorText message={'Hier ist noch kein Ort.\nKlicken Sie oben rechts auf +.'} />
         ) : shown.length === 0 ? (
           <ErrorText message="Kein Ort gefunden." />
         ) : (

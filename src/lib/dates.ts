@@ -22,6 +22,10 @@ export const formatTime = (d: Date) => `${pad2(d.getHours())}:${pad2(d.getMinute
 export const formatDate = (d: Date) => `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${d.getFullYear()}`;
 // November 2026
 export const formatMonthYear = (d: Date) => `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+// Do., 19. November 2026 (Hauptseite, kurzer Wochentag)
+const WEEKDAYS_ABBR = ['So.', 'Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.'];
+export const formatDayDate = (d: Date) =>
+  `${WEEKDAYS_ABBR[d.getDay()]}, ${d.getDate()}. ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 // Donnerstag, 19. November 2026
 export const formatLongDate = (d: Date) =>
   `${WEEKDAYS[d.getDay()]}, ${d.getDate()}. ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;

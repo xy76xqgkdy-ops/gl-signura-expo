@@ -1,0 +1,107 @@
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
+import { Text, View } from 'react-native';
+
+import { AppTextField, ErrorText, OutlineButton, PrimaryButton, Screen } from '../../components/ui';
+import { api, errorMessage } from '../../lib/api';
+import { formatDate, isValidEmail } from '../../lib/dates';
+import { peek } from '../../lib/handoff';
+import { INTERPRETER_STATUS, InterpreterData } from '../../lib/models';
+import { colors, confirm } from '../../lib/theme';
+
+// Neuer Wunsch-Dolmetscher (POST /me/interpreters, schickt die Einladung)
+// oder vorhandenen ändern (PUT …/{id}; neue E-Mail = neue Einladung),
+// Einladung noch einmal schicken (POST …/{id}/invite) und löschen (DELETE …/{id}).
+export default function InterpreterFormScreen() {
+  const params = useLocalSearchParams<{ id?: string }>();
+  const found = params.id ? peek<InterpreterData>('interpreter') : undefined;
+  const existing = found && found.id === params.id ? found : undefined;
+
+  const [name, setName] = useState(existing?.name ?? '');
+  const [email, setEmail] = useState(existing?.email ?? '');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+
+  const canSave = name.trim() !== '' && isValidEmail(email) && !loading;
+  const canReinvite = !!existing && existing.status !== 'accepted';
+
+  async function run(action: () => Promise<void>, back = true) {
+    setLoading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      await action();
+      if (back) router.back();
+      else setLoading(false);
+    } catch (e) {
+      setError(errorMessage(e));
+      setLoading(false);
+    }
+  }
+
+  const save = () =>
+    run(async () => {
+      const body = { name: name.trim(), email: email.trim() };
+      if (existing) await api.putJson(`/me/interpreters/${existing.id}`, body);
+      else await api.postJson('/me/interpreters', body);
+    });
+
+  const reinvite = () =>
+    run(async () => {
+      await api.postJson(`/me/interpreters/${existing!.id}/invite`);
+      setInfo('Die Einladung ist verschickt.');
+    }, false);
+
+  async function remove() {
+    if (!existing) return;
+    const ok = await confirm({
+      title: 'Dolmetscher löschen?',
+      message: `„${existing.name}“ bekommt dann keine Anfragen mehr. Gebuchte Termine bleiben.`,
+      ok: 'Löschen',
+      cancel: 'Abbrechen',
+      destructive: true,
+    });
+    if (ok) run(() => api.deleteJson(`/me/interpreters/${existing.id}`));
+  }
+
+  return (
+    <>
+      <Stack.Screen options={{ title: existing ? 'Dolmetscher bearbeiten' : 'Neuer Dolmetscher' }} />
+      <Screen>
+        {!existing && (
+          <Text style={{ marginBottom: 16, color: colors.text, fontSize: 15, lineHeight: 22 }}>
+            Wir schicken eine E-Mail an Ihren Dolmetscher. Er muss einverstanden sein. Dann bekommt er Ihre Anfragen.
+          </Text>
+        )}
+        {existing && (
+          <Text style={{ marginBottom: 16, color: colors.text, fontSize: 15 }}>
+            {INTERPRETER_STATUS[existing.status].text}
+            {existing.status === 'invited' ? ` (seit ${formatDate(existing.invitedAt)})` : ''}
+          </Text>
+        )}
+        <AppTextField label="Name" value={name} onChangeText={setName} autoFocus={!existing} />
+        <AppTextField
+          label="E-Mail"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        {canReinvite && (
+          <View style={{ alignSelf: 'flex-start', marginBottom: 12 }}>
+            <OutlineButton icon="send" label="Einladung noch einmal schicken" color={colors.primary} disabled={loading} onPress={reinvite} />
+          </View>
+        )}
+        {info && <Text style={{ color: colors.success, marginBottom: 12 }}>{info}</Text>}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
+          {existing && <OutlineButton icon="delete-outline" label="Löschen" disabled={loading} onPress={remove} />}
+          <View style={{ flex: 1 }} />
+          <PrimaryButton label={existing ? 'Speichern' : 'Einladen'} loading={loading} disabled={!canSave} onPress={save} />
+        </View>
+        <ErrorText message={error} />
+      </Screen>
+    </>
+  );
+}

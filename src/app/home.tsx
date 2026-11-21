@@ -7,9 +7,9 @@ import { AvatarStack } from '../components/Avatars';
 import { CalendarBadge, MonthCalendar } from '../components/MonthCalendar';
 import { Sheet } from '../components/pickers';
 import { StatusChip } from '../components/StatusChip';
-import { Divider, ErrorText, FilledButton, IconName, Screen } from '../components/ui';
+import { Divider, ErrorText, IconName, RoundIconButton, Screen } from '../components/ui';
 import { api, ApiException, errorMessage } from '../lib/api';
-import { firstOfMonth, formatLongDate, formatMonthYear, sameDay, today } from '../lib/dates';
+import { firstOfMonth, formatDayDate, formatMonthYear, sameDay, today } from '../lib/dates';
 import { put } from '../lib/handoff';
 import { addressText, arrangeText, parseRequest, RequestData, STATUS, STATUS_ORDER, timeRange, wishText } from '../lib/models';
 import { onPushReceived, syncPush } from '../lib/push';
@@ -102,6 +102,8 @@ export default function HomeScreen() {
         return router.push('/profile');
       case 'locations':
         return router.push('/locations');
+      case 'interpreters':
+        return router.push('/interpreters');
       case 'notifications':
         return router.push('/notifications');
       case 'logout':
@@ -114,6 +116,7 @@ export default function HomeScreen() {
     { key: 'picture', icon: 'account-circle', label: 'Profilbild' },
     { key: 'profile', icon: 'person-outline', label: 'Meine Daten' },
     { key: 'locations', icon: 'place', label: 'Meine Orte' },
+    { key: 'interpreters', icon: 'record-voice-over', label: 'Meine DolmetscherInnen' },
     { key: 'notifications', icon: 'notifications-none', label: 'Benachrichtigungen' },
   ];
 
@@ -139,17 +142,22 @@ export default function HomeScreen() {
           loading={loading}
         />
         <Divider />
-        {/* Datum des Tages, darunter neue Anfrage: eigener Termin oder Termin vereinbaren lassen. */}
-        <View style={s.dateRow}>
-          <Text style={s.dateText}>{formatLongDate(selected)}</Text>
-        </View>
-        <View style={s.newRow}>
-          <View style={{ flex: 1 }}>
-            <FilledButton tonal icon="edit-calendar" label="Termin" onPress={() => newRequest('fixed')} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <FilledButton tonal icon="support-agent" label="Termin vereinbaren" onPress={() => newRequest('arrange')} />
-          </View>
+        {/* Datum des Tages, rechts am Rand neue Anfrage als runde Knöpfe nur mit Symbol:
+            eigener Termin oder Termin vereinbaren lassen. Der längere Text erscheint als Tooltip. */}
+        <View style={[s.dateRow, { zIndex: 10 }]}>
+          <Text style={s.dateText}>{formatDayDate(selected)}</Text>
+          <RoundIconButton
+            icon="edit-calendar"
+            label="Termin"
+            tooltip="Termin eintragen: Sie haben schon einen Termin."
+            onPress={() => newRequest('fixed')}
+          />
+          <RoundIconButton
+            icon="support-agent"
+            label="Termin vereinbaren"
+            tooltip="Termin vereinbaren: Ein Vermittler ruft für Sie in der Praxis an."
+            onPress={() => newRequest('arrange')}
+          />
         </View>
         {error ? (
           <ErrorText message={error} />
@@ -187,7 +195,11 @@ function EmptyDay() {
   return (
     <View style={s.empty}>
       <MaterialIcons name="event-available" size={48} color={colors.muted} />
-      <Text style={s.emptyText}>An diesem Tag haben Sie keine Anfragen.</Text>
+      {/* Gleiche Farbe wie bei "Meine Orte" (ErrorText), mit den Symbolen der Knöpfe im Text. */}
+      <Text style={s.emptyText}>
+        Hier ist noch keine Anfrage.{'\n'}Klicken Sie oben auf <MaterialIcons name="edit-calendar" size={15} color={colors.error} />{' '}
+        „Termin“ oder <MaterialIcons name="support-agent" size={15} color={colors.error} /> „Termin vereinbaren“.
+      </Text>
     </View>
   );
 }
@@ -254,11 +266,10 @@ function RequestTile({ request: r, onPress }: { request: RequestData; onPress: (
 }
 
 const s = StyleSheet.create({
-  dateRow: { flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 8, paddingTop: 8 },
-  newRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 },
+  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8 },
   dateText: { flex: 1, fontSize: 14, fontWeight: '500', color: colors.text },
   empty: { alignItems: 'center', paddingVertical: 32, paddingHorizontal: 24, gap: 12 },
-  emptyText: { color: colors.muted, textAlign: 'center' },
+  emptyText: { color: colors.error, fontSize: 13, textAlign: 'center', lineHeight: 20 },
   tile: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 12, paddingVertical: 10 },
   avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   tileTitle: { fontWeight: 'bold', fontSize: 15, color: colors.text },
