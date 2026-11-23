@@ -8,7 +8,7 @@ import { isValidEmail } from '../lib/dates';
 import { saveSession, useSession } from '../lib/session';
 import { colors } from '../lib/theme';
 
-// Anmeldung über POST /users/login (booin-Backend).
+// Anmeldung über POST /users/login (Signura-Backend).
 export default function LoginScreen() {
   const { setUser } = useSession();
   const [email, setEmail] = useState('');

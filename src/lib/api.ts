@@ -14,7 +14,7 @@ export function errorMessage(e: unknown): string {
   return e instanceof ApiException ? e.message : 'Es gibt ein Problem bei uns. Bitte versuchen Sie es später noch einmal.';
 }
 
-// Adresse der booin-API:
+// Adresse der Signura-API:
 //   Web-App auf gl.signura.de → "/api" (gleiche Adresse, kein CORS nötig)
 //   sonst (Expo Go, Handy)    → https://gl.signura.de/api
 // Überschreibbar mit EXPO_PUBLIC_API_BASE=https://… (z. B. in .env.local).

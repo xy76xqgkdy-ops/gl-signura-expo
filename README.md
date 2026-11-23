@@ -7,7 +7,7 @@ Expo Router, TypeScript). Gleiche Seiten, Texte und Backend-Aufrufe;
 ## Starten mit Expo Go
 
 ```bash
-cd booin/frontend_expo
+cd gl.signura/frontend_expo
 npm install          # nur beim ersten Mal
 npx expo start       # QR-Code mit Expo Go (Android) bzw. der Kamera (iPhone) scannen
 ```
