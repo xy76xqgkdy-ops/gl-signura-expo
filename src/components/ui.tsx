@@ -2,6 +2,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { ComponentProps, ReactNode, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -18,6 +19,28 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../lib/theme';
 
 export type IconName = ComponentProps<typeof MaterialIcons>['name'];
+
+// Kopf auf Anmeldung, Registrierung und "Passwort vergessen":
+// Logo links, rechts daneben "Signura GL" und darunter "für Gehörlose".
+// Das Logo ist rein dekorativ und für Screenreader ausgeblendet.
+export function SignuraHeader() {
+  return (
+    <View style={styles.header}>
+      <Image
+        source={require('../../assets/images/signura-logo.png')}
+        style={styles.headerLogo}
+        accessibilityIgnoresInvertColors
+        accessible={false}
+      />
+      <View>
+        <Text style={styles.headerTitle}>
+          <Text style={{ color: colors.brand }}>Signura</Text> GL
+        </Text>
+        <Text style={styles.headerSubtitle}>für Gehörlose</Text>
+      </View>
+    </View>
+  );
+}
 
 // Seite mit Abstand und Scrollen (Flutter: SafeArea + SingleChildScrollView).
 export function Screen({
@@ -275,6 +298,10 @@ export const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   padded: { padding: 12 },
   center: { flexGrow: 1, justifyContent: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 24 },
+  headerLogo: { width: 64, height: 64 },
+  headerTitle: { fontSize: 28, fontWeight: 'bold', color: colors.text },
+  headerSubtitle: { fontSize: 16, color: colors.muted },
   row: { flexDirection: 'row', alignItems: 'center' },
   field: {
     backgroundColor: colors.field,

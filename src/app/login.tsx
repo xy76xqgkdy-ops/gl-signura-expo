@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AppTextField, ErrorText, PrimaryButton, Screen } from '../components/ui';
+import { AppTextField, ErrorText, PrimaryButton, Screen, SignuraHeader } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { isValidEmail } from '../lib/dates';
 import { saveSession, useSession } from '../lib/session';
@@ -35,13 +35,9 @@ export default function LoginScreen() {
   }
 
   return (
-    <Screen center>
-      <Text style={s.title}>
-        <Text style={{ color: colors.brand }}>Boo</Text>
-        king <Text style={{ color: colors.brand }}>In</Text>
-        terpreter
-      </Text>
-      <View style={{ height: 32 }} />
+    <Screen>
+      <SignuraHeader />
+      <View style={{ height: 8 }} />
       <AppTextField
         label="E-Mail"
         value={email}
@@ -77,7 +73,6 @@ export default function LoginScreen() {
 }
 
 const s = StyleSheet.create({
-  title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', color: colors.text },
   link: { alignItems: 'center', paddingVertical: 10 },
   linkText: { color: colors.primary, fontSize: 15, fontWeight: '500' },
 });

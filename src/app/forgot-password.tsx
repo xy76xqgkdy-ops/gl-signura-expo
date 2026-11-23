@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { CodeStep, PasswordStep, SuccessView } from '../components/steps';
-import { AppTextField, Card, ErrorText, PrimaryButton, Screen } from '../components/ui';
+import { AppTextField, Card, ErrorText, PrimaryButton, Screen, SignuraHeader } from '../components/ui';
 import { api, ApiException, errorMessage } from '../lib/api';
 import { isValidEmail } from '../lib/dates';
 import { colors } from '../lib/theme';
@@ -46,6 +46,7 @@ export default function ForgotPasswordScreen() {
 
   return (
     <Screen>
+      <SignuraHeader />
       {step === 'email' && (
         <View>
           <Text style={{ fontSize: 15, color: colors.text, lineHeight: 22 }}>

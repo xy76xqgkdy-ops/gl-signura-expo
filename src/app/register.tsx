@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { CodeStep, PasswordStep, SuccessView } from '../components/steps';
-import { AppTextField, ErrorText, PrimaryButton, Screen } from '../components/ui';
+import { AppTextField, ErrorText, PrimaryButton, Screen, SignuraHeader } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { isValidEmail } from '../lib/dates';
 import { colors } from '../lib/theme';
@@ -44,6 +44,7 @@ export default function RegisterScreen() {
 
   return (
     <Screen>
+      <SignuraHeader />
       {step === 'details' && (
         <View>
           <Text style={{ fontSize: 16, color: colors.text }}>Bitte geben Sie Ihren Namen und Ihre E-Mail-Adresse ein.</Text>
