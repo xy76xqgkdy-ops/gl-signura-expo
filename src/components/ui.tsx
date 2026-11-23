@@ -42,7 +42,7 @@ export function SignuraHeader() {
   );
 }
 
-// Seite mit Abstand und Scrollen (Flutter: SafeArea + SingleChildScrollView).
+// Seite mit Abstand und Scrollen.
 export function Screen({
   children,
   onRefresh,
@@ -147,7 +147,7 @@ export function TapField({
   );
 }
 
-// Hauptknopf rechts (Flutter: PrimaryButton).
+// Hauptknopf rechts.
 export function PrimaryButton({
   label,
   onPress,
@@ -233,7 +233,7 @@ export function FilledButton({
   );
 }
 
-// Runder Knopf nur mit Symbol (Flutter: IconButton.filledTonal / outlined).
+// Runder Knopf nur mit Symbol.
 export function RoundIconButton({
   icon,
   onPress,
@@ -285,7 +285,7 @@ export function Checkbox({ checked }: { checked: boolean }) {
   );
 }
 
-// Rahmen wie Flutter-Card.
+// Rahmen mit abgerundeten Ecken (Karte).
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[styles.card, style]}>{children}</View>;
 }

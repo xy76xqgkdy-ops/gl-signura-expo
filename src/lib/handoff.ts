@@ -1,5 +1,5 @@
-// Übergabe von Daten zwischen Seiten (statt Navigator.push/pop-Rückgabewerten
-// in Flutter): eine Seite legt etwas ab, die andere holt es beim Öffnen bzw.
+// Übergabe von Daten zwischen Seiten (Expo Router kennt keine Rückgabewerte
+// beim Zurückgehen): eine Seite legt etwas ab, die andere holt es beim Öffnen bzw.
 // beim Zurückkommen ab.
 //
 //   'request'          Anfrage, die das Formular öffnen soll

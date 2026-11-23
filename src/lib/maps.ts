@@ -26,6 +26,6 @@ export async function openRoute(address: string) {
     return;
   }
   const ua = typeof navigator === 'undefined' ? '' : navigator.userAgent;
-  const appleDevice = /iPhone|iPad|iPod|Macintosh/.test(ua); // wie in der Flutter-App: auch Mac
+  const appleDevice = /iPhone|iPad|iPod|Macintosh/.test(ua); // auch Mac
   window.open(appleDevice ? apple : google, '_blank', 'noopener');
 }

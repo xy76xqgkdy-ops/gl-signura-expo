@@ -7,7 +7,7 @@ import { colors } from '../lib/theme';
 import { MonthCalendar } from './MonthCalendar';
 import { Checkbox } from './ui';
 
-// Fenster von unten bzw. in der Mitte (Flutter: Dialog / Menü).
+// Fenster von unten bzw. in der Mitte.
 export function Sheet({
   visible,
   onClose,
@@ -31,7 +31,7 @@ export function Sheet({
   );
 }
 
-// Datum wählen (Flutter: showDatePicker).
+// Datum wählen.
 export function DatePickerSheet({
   visible,
   value,
@@ -78,7 +78,7 @@ export function DatePickerSheet({
   );
 }
 
-// Uhrzeit wählen (Flutter: showTimePicker): Stunden und Minuten (5er-Schritte).
+// Uhrzeit wählen: Stunden und Minuten (5er-Schritte).
 export function TimePickerSheet({
   visible,
   value,
@@ -130,7 +130,7 @@ export function TimePickerSheet({
   );
 }
 
-// Auswahlliste (Flutter: DropdownButtonFormField).
+// Auswahlliste.
 export function OptionSheet({
   visible,
   options,

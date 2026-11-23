@@ -8,7 +8,7 @@ import { colors } from '../lib/theme';
 export type CalendarBadge = { color: string; count: number };
 
 // Monatskalender (Montag zuerst) mit Zählern je Tag. Monat wechseln durch
-// Wischen nach links/rechts (wie in der Flutter-App ohne Pfeile).
+// Wischen nach links/rechts (ohne Pfeile).
 export function MonthCalendar({
   month,
   selected,

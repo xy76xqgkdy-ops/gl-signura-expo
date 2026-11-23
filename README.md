@@ -1,8 +1,10 @@
-# Signura – Expo-App
+# Signura – App
 
-Die Flutter-App aus `../frontend` als React-Native-App mit Expo (SDK 58,
-Expo Router, TypeScript). Gleiche Seiten, Texte und Backend-Aufrufe;
-`../frontend` bleibt unverändert.
+Die Signura-App für Auftraggeber:innen mit Expo (SDK 58, Expo Router,
+TypeScript). Ein Code für iPhone, Android und die Web-Fassung auf
+https://gl.signura.de.
+
+Am einfachsten über das Menü: `../menu.sh` → „App (Expo)“.
 
 ## Starten mit Expo Go
 
@@ -18,35 +20,45 @@ Die App spricht direkt mit `https://gl.signura.de/api`; andere Adresse:
 
 Prüfen: `npx tsc --noEmit`, `npx expo lint`, `npx expo-doctor`.
 
+## Web-Fassung
+
+Lokal im Browser: `npx expo start --web --port 5173`. Port 5173, weil das
+Backend im Browser nur diesen lokalen Origin erlaubt (CORS).
+
+Veröffentlichen auf gl.signura.de: `./deploy.sh`. Das Skript baut mit
+`npx expo export --platform web` nach `dist/` und lädt das per rsync nach
+`/var/www/html` auf signura-web (167.233.242.200). nginx leitet unbekannte
+Pfade auf `index.html` um, damit Neuladen auf jeder Seite (z. B. `/login`) geht.
+
+Unterschiede zu iPhone und Android: kein Push (nur in der App), das Token liegt
+im `localStorage` statt im SecureStore.
+
+`public/flutter_service_worker.js` und `public/push-sw.js` schalten die Service
+Worker der früheren Flutter-Web-App bei alten Besuchern ab. Sie können
+entfernt werden, wenn keine alten Besucher mehr zu erwarten sind.
+
 ## Aufbau
 
-| Flutter (`frontend/lib`) | Expo (`src`) |
+| Bereich | Datei |
 |---|---|
-| `features/start/start_screen.dart` | `app/index.tsx` |
-| `features/auth/login_screen.dart` | `app/login.tsx` |
-| `features/auth/register_screen.dart` | `app/register.tsx` |
-| `features/auth/forgot_password_screen.dart` | `app/forgot-password.tsx` |
-| `features/home/home_screen.dart` | `app/home.tsx` |
-| `features/request/request_form_screen.dart` | `app/request.tsx` |
-| `features/location/location_list_screen.dart` | `app/locations/index.tsx` |
-| `features/location/location_form_screen.dart` | `app/locations/form.tsx` |
-| `features/profile/profile_screen.dart` | `app/profile.tsx` |
-| `features/profile/picture_screen.dart` | `app/picture.tsx` |
-| `features/profile/notifications_screen.dart` | `app/notifications.tsx` |
-| `core/api/api_client.dart` | `lib/api.ts` |
-| `core/session/session_store.dart` | `lib/session.tsx` (Token in SecureStore, im Browser localStorage) |
-| `features/request/request_data.dart` | `lib/models.ts` |
-| `core/widgets/*` | `components/*` |
+| Start, Termine | `src/app/index.tsx`, `src/app/home.tsx` |
+| Anmelden, Registrieren, Passwort vergessen | `src/app/login.tsx`, `src/app/register.tsx`, `src/app/forgot-password.tsx` |
+| Anfrage stellen | `src/app/request.tsx` |
+| Meine Orte | `src/app/locations/` |
+| Meine DolmetscherInnen | `src/app/interpreters/` |
+| Profil, Bild, Benachrichtigungen | `src/app/profile.tsx`, `src/app/picture.tsx`, `src/app/notifications.tsx` |
+| Backend-Aufrufe | `src/lib/api.ts` |
+| Anmeldung (Token in SecureStore, im Browser localStorage) | `src/lib/session.tsx` |
+| Daten der Anfragen | `src/lib/models.ts` |
+| Push | `src/lib/push.ts` |
+| Bausteine (Knöpfe, Felder, Auswahl) | `src/components/` |
 
-Unterschiede zur Flutter-App:
+Hinweise:
 
-- Rückgabewerte von `Navigator.pop` gibt es in Expo Router nicht. Startseite
+- Rückgabewerte beim Zurückgehen gibt es in Expo Router nicht. Startseite
   und „Meine Orte“ laden beim Zurückkommen neu; ein neuer Ort geht über
-  `lib/handoff.ts` an das Anfrage-Formular zurück.
-- Datum und Uhrzeit wählt man in eigenen Fenstern (`components/pickers.tsx`),
+  `src/lib/handoff.ts` an das Anfrage-Formular zurück.
+- Datum und Uhrzeit wählt man in eigenen Fenstern (`src/components/pickers.tsx`),
   Minuten in 5er-Schritten.
 - Der angemeldete Benutzer liegt in einem React-Context (`useSession`).
 - Hell, ohne dunkles Design.
-
-Alle verwendeten Module sind in Expo Go enthalten (Bildauswahl, Bild
-verkleinern, SecureStore); ein eigener Build ist nicht nötig.

@@ -1,6 +1,6 @@
 import { Alert, Platform } from 'react-native';
 
-// Farben wie in der Flutter-App (Material 3, Grundfarbe Blau).
+// Farben (angelehnt an Material 3, Grundfarbe Blau).
 export const colors = {
   primary: '#3F5F90',
   onPrimary: '#FFFFFF',
@@ -20,7 +20,7 @@ export const colors = {
   brand: '#2196F3',
 };
 
-// Frage mit zwei Knöpfen (Flutter: AlertDialog). Auf dem Handy Alert,
+// Frage mit zwei Knöpfen. Auf dem Handy Alert,
 // im Browser window.confirm.
 export function confirm(opts: {
   title: string;
