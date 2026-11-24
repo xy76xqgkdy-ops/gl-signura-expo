@@ -48,7 +48,10 @@ export default function ConsentScreen() {
       <View style={{ backgroundColor: colors.field, borderRadius: 12, padding: 14, marginBottom: 12 }}>
         <Text style={[p, { marginBottom: 0 }]}>{CONSENT_TEXT}</Text>
       </View>
-      <Text style={p}>Widerrufen: E-Mail an datenschutz@signura.de oder Konto löschen.</Text>
+      <Text style={p}>
+        Widerrufen geht jederzeit: in der App unter Meine Daten → „Einwilligung widerrufen“, per E-Mail an
+        datenschutz@signura.de oder indem Sie Ihr Konto löschen.
+      </Text>
       <Pressable onPress={openPrivacy} accessibilityRole="link" style={{ paddingVertical: 8, marginBottom: 16 }}>
         <Text style={{ color: colors.primary, fontSize: 15, fontWeight: '500' }}>Datenschutzerklärung lesen</Text>
       </Pressable>

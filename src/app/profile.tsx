@@ -8,8 +8,9 @@ import { CodeInput } from '../components/steps';
 import { AppTextField, ErrorText, Muted, OutlineButton, PrimaryButton, Screen } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { formatDate, formatTime, isValidEmail } from '../lib/dates';
+import { hasConsent } from '../lib/consent';
 import { useSession } from '../lib/session';
-import { useColors } from '../lib/theme';
+import { confirm, useColors } from '../lib/theme';
 
 // Sprache der App (Anzeige, E-Mails). Zurzeit nur Deutsch, Englisch kommt später:
 // { value: 'en_US', name: 'English', flag: '🇬🇧' },
@@ -111,6 +112,25 @@ export default function ProfileScreen() {
     router.back();
   }
 
+  // Einwilligung Gesundheitsdaten widerrufen (DELETE /me/consent): löscht den
+  // Anlass aller Anfragen; danach kommt die Seite "Ihre Einwilligung".
+  async function withdrawConsent() {
+    const ok = await confirm({
+      title: 'Einwilligung widerrufen?',
+      message:
+        'Der Anlass Ihrer Anfragen wird gelöscht. Ihre Termine bleiben. Neue Anfragen können Sie erst stellen, wenn Sie wieder einwilligen.',
+      ok: 'Widerrufen',
+      cancel: 'Abbrechen',
+      destructive: true,
+    });
+    if (!ok) return;
+    await runAction(async () => {
+      await api.deleteJson('/me/consent');
+      setUser({ ...user, health_consent_at: null });
+      router.replace('/consent');
+    });
+  }
+
   // "speichern": bei neuer E-Mail/Handynummer erst Codes schicken.
   const save = () =>
     runAction(async () => {
@@ -202,8 +222,18 @@ export default function ProfileScreen() {
       <View style={{ height: 16 }} />
       <PrimaryButton label="speichern" loading={loading} disabled={!canSave} onPress={save} />
       <ErrorText message={error} />
-      {/* Konto löschen: eigene Seite mit Passwort (Pflicht für App Store und Google Play). */}
-      <View style={{ marginTop: 40, alignItems: 'flex-start' }}>
+      {/* Einwilligung widerrufen (Art. 9 DSGVO, lib/consent.ts) und Konto löschen
+          (eigene Seite mit Passwort, Pflicht für App Store und Google Play). */}
+      <View style={{ marginTop: 40, alignItems: 'flex-start', gap: 12 }}>
+        {hasConsent(user) && (
+          <OutlineButton
+            label="Einwilligung widerrufen"
+            icon="block"
+            color={colors.muted}
+            disabled={loading}
+            onPress={withdrawConsent}
+          />
+        )}
         <OutlineButton label="Konto löschen" icon="delete-outline" onPress={() => router.push('/delete-account')} />
       </View>
       {/* Welcher App-Stand läuft: zeigt, ob ein EAS Update angekommen ist. */}
