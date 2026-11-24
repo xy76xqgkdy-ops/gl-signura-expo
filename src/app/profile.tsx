@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import * as Updates from 'expo-updates';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
@@ -6,13 +7,22 @@ import { FlagCheckList, FlagItem } from '../components/pickers';
 import { CodeInput } from '../components/steps';
 import { AppTextField, ErrorText, Muted, OutlineButton, PrimaryButton, Screen } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
-import { isValidEmail } from '../lib/dates';
+import { formatDate, formatTime, isValidEmail } from '../lib/dates';
 import { useSession } from '../lib/session';
 import { useColors } from '../lib/theme';
 
 // Sprache der App (Anzeige, E-Mails). Zurzeit nur Deutsch, Englisch kommt später:
 // { value: 'en_US', name: 'English', flag: '🇬🇧' },
 const APP_LANGUAGES: FlagItem[] = [{ value: 'de_DE', name: 'Deutsch', flag: '🇩🇪' }];
+
+// App-Stand für unten auf der Seite: aus dem installierten Build oder von
+// einem EAS Update (mit Datum). Im Browser und in Expo Go gibt es keins.
+function appStand(): string {
+  if (!Updates.isEnabled) return 'Entwicklungs-Version';
+  if (Updates.isEmbeddedLaunch || !Updates.createdAt) return 'App-Stand: aus dem Build';
+  const d = Updates.createdAt;
+  return `App-Stand: Update vom ${formatDate(d)}, ${formatTime(d)} Uhr`;
+}
 
 // Wie das Backend: +49… ohne Leerzeichen, damit "0170 1" = "+491701" ist.
 function normMobile(m: string) {
@@ -196,6 +206,8 @@ export default function ProfileScreen() {
       <View style={{ marginTop: 40, alignItems: 'flex-start' }}>
         <OutlineButton label="Konto löschen" icon="delete-outline" onPress={() => router.push('/delete-account')} />
       </View>
+      {/* Welcher App-Stand läuft: zeigt, ob ein EAS Update angekommen ist. */}
+      <Muted style={{ marginTop: 24, textAlign: 'center' }}>{appStand()}</Muted>
     </Screen>
   );
 }
