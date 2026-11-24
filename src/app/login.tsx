@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { AppTextField, ErrorText, PrimaryButton, Screen, SignuraHeader } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
+import { startRoute } from '../lib/consent';
 import { isValidEmail } from '../lib/dates';
 import { saveSession, useSession } from '../lib/session';
 import { makeStyles } from '../lib/theme';
@@ -27,8 +28,9 @@ export default function LoginScreen() {
       // Angemeldet bleiben: Token auf dem Gerät speichern.
       await saveSession(user.token as string);
       setUser(user);
-      // Anmeldung durch die Startseite ersetzen (Zurück führt nicht wieder hierher).
-      router.replace('/home');
+      // Anmeldung durch die Startseite ersetzen (Zurück führt nicht wieder hierher);
+      // ohne Einwilligung Gesundheitsdaten erst die Einwilligung.
+      router.replace(startRoute(user));
     } catch (e) {
       setError(errorMessage(e));
       setLoading(false);

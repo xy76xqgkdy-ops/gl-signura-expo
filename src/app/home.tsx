@@ -9,6 +9,7 @@ import { Sheet } from '../components/pickers';
 import { StatusChip } from '../components/StatusChip';
 import { Divider, ErrorText, IconName, Screen } from '../components/ui';
 import { api, ApiException, errorMessage } from '../lib/api';
+import { hasConsent } from '../lib/consent';
 import { firstOfMonth, formatDayDate, formatMonthYear, sameDay, today } from '../lib/dates';
 import { put } from '../lib/handoff';
 import { addressText, arrangeText, parseRequest, RequestData, STATUS, STATUS_ORDER, timeRange, wishText } from '../lib/models';
@@ -58,6 +59,10 @@ export default function HomeScreen() {
   // kommt eine Mitteilung bei offener App, die Liste neu laden.
   const { user } = useSession();
   const notifyPush = user?.notify_push !== false;
+  // Ohne Einwilligung Gesundheitsdaten (z. B. über Push hierher) erst einwilligen.
+  useEffect(() => {
+    if (user && !hasConsent(user)) router.replace('/consent');
+  }, [user]);
   useEffect(() => {
     syncPush(notifyPush);
     return onPushReceived(() => load());

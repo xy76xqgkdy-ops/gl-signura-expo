@@ -50,6 +50,7 @@ export default function RootLayout() {
           <Stack.Screen name="login" options={{ title: 'Anmeldung', headerBackVisible: false }} />
           <Stack.Screen name="register" options={{ title: 'Neues Konto' }} />
           <Stack.Screen name="forgot-password" options={{ title: 'Passwort vergessen' }} />
+          <Stack.Screen name="consent" options={{ title: 'Einwilligung', headerBackVisible: false, gestureEnabled: false }} />
           <Stack.Screen name="home" options={{ title: '' }} />
           <Stack.Screen name="request" options={{ title: 'Anfrage' }} />
           <Stack.Screen name="locations/index" options={{ title: 'Meine Orte' }} />

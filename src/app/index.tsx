@@ -4,6 +4,7 @@ import { ActivityIndicator, Text, View } from 'react-native';
 
 import { PrimaryButton } from '../components/ui';
 import { errorMessage } from '../lib/api';
+import { startRoute } from '../lib/consent';
 import { restoreSession, useSession } from '../lib/session';
 import { useColors } from '../lib/theme';
 
@@ -19,7 +20,7 @@ export default function StartScreen() {
       const user = await restoreSession();
       if (user) {
         setUser(user);
-        router.replace('/home');
+        router.replace(startRoute(user));
       } else {
         router.replace('/login');
       }
