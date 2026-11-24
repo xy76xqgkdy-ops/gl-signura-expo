@@ -62,6 +62,12 @@
         "projectId": "0aabef27-84f5-497b-a459-3166ca1ac9d6"
       }
     },
-    "owner": "achimfeldmann"
+    "owner": "achimfeldmann",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/0aabef27-84f5-497b-a459-3166ca1ac9d6"
+    }
   }
 }

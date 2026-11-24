@@ -20,6 +20,24 @@ Die App spricht direkt mit `https://gl.signura.de/api`; andere Adresse:
 
 Prüfen: `npx tsc --noEmit`, `npx expo lint`, `npx expo-doctor`.
 
+## Test-App auf dem iPhone und Updates
+
+Gebaut wird mit EAS (`eas.json`), Profil `preview`: eigenständige App für
+registrierte iPhones (`npx eas-cli@latest device:create`), Installation über
+den Link bzw. QR-Code auf der Build-Seite bei expo.dev.
+
+- **Neuer Build** (`../menu.sh` → App → b): nach nativen Änderungen, also
+  `app.json`, neue Pakete mit nativem Code, SDK-Update.
+- **Update** (`../menu.sh` → App → u, oder
+  `npx eas-cli@latest update --channel preview --environment preview --message "…"`):
+  alles andere (Code in `src/`, Bilder). Die App lädt es beim Start im
+  Hintergrund und zeigt es beim **nächsten** Start.
+
+`runtimeVersion` ist `fingerprint`: EAS berechnet aus dem nativen Teil eine
+Kennung. Ein Update kommt nur bei Builds mit derselben Kennung an; passt
+keiner, zuerst neu bauen. Kanäle: `development`, `preview`, `production`
+(je Build-Profil in `eas.json`).
+
 ## Web-Fassung (nur zum Entwickeln)
 
 Seit 23.11.2026 gibt es Signura nur als App. Anmelden, Registrieren, Termine
