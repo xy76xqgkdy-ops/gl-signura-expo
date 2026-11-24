@@ -2,7 +2,7 @@
 
 Die Signura-App für Auftraggeber:innen mit Expo (SDK 58, Expo Router,
 TypeScript) für iPhone und Android. Die Web-Fassung wird nicht mehr
-veröffentlicht: Auf https://gl.signura.de liegt die Werbeseite (`../website`).
+veröffentlicht: Auf https://gl.signura.de liegt die Werbeseite (`../backend/website`).
 
 Am einfachsten über das Menü: `../menu.sh` → „App (Expo)“.
 
