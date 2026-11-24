@@ -1,17 +1,19 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Linking, StyleSheet, Switch, Text, View } from 'react-native';
+import { Linking, Switch, Text, View } from 'react-native';
 
 import { ErrorText, Muted, PrimaryButton, Screen } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { disablePush, enablePush } from '../lib/push';
 import { useSession } from '../lib/session';
-import { colors } from '../lib/theme';
+import { makeStyles, useColors } from '../lib/theme';
 
 // Benachrichtigungen: Push-Mitteilungen ein/aus (PUT /me notify_push).
 // Eingeschaltet meldet sich dieses Gerät beim Backend an (POST /me/push-tokens).
 export default function NotificationsScreen() {
+  const colors = useColors();
+  const s = useS();
   const { user, setUser } = useSession();
   const [push, setPush] = useState<boolean>(user?.notify_push ?? true);
   const [loading, setLoading] = useState(false);
@@ -72,8 +74,8 @@ export default function NotificationsScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10 },
   label: { flex: 1, marginLeft: 16, fontSize: 16, color: colors.text },
   link: { color: colors.primary, fontSize: 15, fontWeight: '500', marginTop: 8 },
-});
+}));

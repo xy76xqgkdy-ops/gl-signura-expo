@@ -3,7 +3,7 @@ import { ReactNode, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { addMonths, firstOfMonth, formatMonthYear, pad2, Time } from '../lib/dates';
-import { colors } from '../lib/theme';
+import { makeStyles, useColors } from '../lib/theme';
 import { MonthCalendar } from './MonthCalendar';
 import { Checkbox } from './ui';
 
@@ -19,6 +19,7 @@ export function Sheet({
   title?: string;
   children: ReactNode;
 }) {
+  const s = useS();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={s.backdrop} onPress={onClose}>
@@ -47,6 +48,8 @@ export function DatePickerSheet({
   onPick: (d: Date) => void;
   onClose: () => void;
 }) {
+  const colors = useColors();
+  const s = useS();
   const [month, setMonth] = useState(firstOfMonth(value));
   const canPrev = addMonths(month, -1) >= firstOfMonth(min);
   const canNext = addMonths(month, 1) <= firstOfMonth(max);
@@ -90,6 +93,8 @@ export function TimePickerSheet({
   onPick: (t: Time) => void;
   onClose: () => void;
 }) {
+  const colors = useColors();
+  const s = useS();
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = Array.from(new Set([...Array.from({ length: 12 }, (_, i) => i * 5), value.minute])).sort((a, b) => a - b);
   const [hour, setHour] = useState(value.hour);
@@ -144,6 +149,8 @@ export function OptionSheet({
   onPick: (v: string) => void;
   onClose: () => void;
 }) {
+  const colors = useColors();
+  const s = useS();
   return (
     <Sheet visible={visible} onClose={onClose}>
       {options.map((o) => (
@@ -182,6 +189,7 @@ export function FlagCheckList({
   onChange: (value: string, checked: boolean) => void;
   maxRows?: number;
 }) {
+  const s = useS();
   const ROW = 48;
   const sorted = [
     ...selected.flatMap((v) => items.filter((i) => i.value === v)),
@@ -217,8 +225,8 @@ export function FlagCheckList({
   );
 }
 
-const s = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', padding: 16 },
+const useS = makeStyles((colors) => ({
+  backdrop: { flex: 1, backgroundColor: colors.backdrop, justifyContent: 'center', padding: 16 },
   sheet: { backgroundColor: colors.surface, borderRadius: 20, padding: 16, maxWidth: 480, width: '100%', alignSelf: 'center' },
   sheetTitle: { fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 8, textAlign: 'center' },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -240,4 +248,4 @@ const s = StyleSheet.create({
   },
   flagRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 12 },
   flagName: { flex: 1, fontSize: 15, color: colors.text },
-});
+}));

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { addMonths, sameDay, today, WEEKDAYS_SHORT } from '../lib/dates';
-import { colors } from '../lib/theme';
+import { makeStyles, useColors } from '../lib/theme';
 
 // Farbiger Zähler unter einem Kalendertag.
 export type CalendarBadge = { color: string; count: number };
@@ -26,6 +26,8 @@ export function MonthCalendar({
   loading?: boolean;
   isDisabled?: (d: Date) => boolean;
 }) {
+  const colors = useColors();
+  const s = useS();
   const now = today();
   const weeks = useMemo(() => {
     const first = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -91,7 +93,7 @@ export function MonthCalendar({
                     isToday && !isSel && { borderWidth: 1, borderColor: colors.primary },
                   ]}
                 >
-                  <Text style={[s.dayText, isSel && { color: '#fff' }, disabled && { color: colors.outline }]}>{day}</Text>
+                  <Text style={[s.dayText, isSel && { color: colors.onPrimary }, disabled && { color: colors.outline }]}>{day}</Text>
                 </View>
                 <View style={s.badges}>
                   {badgesFor(day)
@@ -112,7 +114,7 @@ export function MonthCalendar({
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   wrap: { paddingTop: 12, paddingHorizontal: 4 },
   week: { flexDirection: 'row' },
   weekday: { flex: 1, textAlign: 'center', fontSize: 13, color: colors.muted, paddingVertical: 6 },
@@ -130,4 +132,4 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeText: { fontSize: 9, fontWeight: 'bold', color: '#000' },
-});
+}));

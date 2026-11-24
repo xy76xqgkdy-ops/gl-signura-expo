@@ -1,10 +1,10 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useEffect, useState } from 'react';
-import { Linking, Platform, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Text, View } from 'react-native';
 
 import { api, errorMessage } from '../lib/api';
 import { formatDate, formatTime } from '../lib/dates';
-import { colors } from '../lib/theme';
+import { makeStyles, useColors } from '../lib/theme';
 import { FilledButton } from './ui';
 
 // Video-Termin (gebuchte Anfrage per Video): Knopf "Video starten" ab 15
@@ -14,6 +14,8 @@ import { FilledButton } from './ui';
 type Video = { url: string; opensAt: Date; state: 'early' | 'open' | 'over' };
 
 export function VideoCard({ requestId }: { requestId: string }) {
+  const colors = useColors();
+  const s = useS();
   const [video, setVideo] = useState<Video | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => new Date());
@@ -67,8 +69,8 @@ export function VideoCard({ requestId }: { requestId: string }) {
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   card: { flexDirection: 'row', gap: 12, backgroundColor: colors.field, borderRadius: 12, padding: 12, marginBottom: 16 },
   text: { fontSize: 15, lineHeight: 22, color: colors.text },
   error: { color: colors.error, fontSize: 13, marginBottom: 12 },
-});
+}));

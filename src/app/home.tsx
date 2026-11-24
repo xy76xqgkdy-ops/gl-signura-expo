@@ -1,7 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { AvatarStack } from '../components/Avatars';
 import { CalendarBadge, MonthCalendar } from '../components/MonthCalendar';
@@ -14,7 +14,7 @@ import { put } from '../lib/handoff';
 import { addressText, arrangeText, parseRequest, RequestData, STATUS, STATUS_ORDER, timeRange, wishText } from '../lib/models';
 import { onPushReceived, syncPush } from '../lib/push';
 import { logout, useSession } from '../lib/session';
-import { colors } from '../lib/theme';
+import { makeStyles, useColors } from '../lib/theme';
 
 // Startseite: Monatskalender mit den eigenen Anfragen (farbige Zähler je
 // Status, Monat per Wischen wechseln), darunter die Anfragen des gewählten
@@ -22,6 +22,8 @@ import { colors } from '../lib/theme';
 // Meine Daten, Meine Orte, Benachrichtigungen und Abmelden.
 // Daten: GET /me/requests für den angezeigten Monat.
 export default function HomeScreen() {
+  const colors = useColors();
+  const s = useS();
   const [selected, setSelected] = useState(today());
   const [month, setMonth] = useState(firstOfMonth(today()));
   const [requests, setRequests] = useState<RequestData[]>([]);
@@ -198,6 +200,8 @@ export default function HomeScreen() {
 
 // Leerer Tag: nur ein Hinweis; neue Anfrage über "+" in der Kopfzeile.
 function EmptyDay() {
+  const colors = useColors();
+  const s = useS();
   return (
     <View style={s.empty}>
       <MaterialIcons name="event-available" size={48} color={colors.muted} />
@@ -215,6 +219,8 @@ function EmptyDay() {
 //   rechts  Status
 // Terminsuche (noch kein Termin): Zeitraum statt Uhrzeit, Stand statt Dolmetscher.
 function RequestTile({ request: r, onPress }: { request: RequestData; onPress: () => void }) {
+  const colors = useColors();
+  const s = useS();
   const cancelled = r.status === 'cancelled';
   // Gebucht: Namen; offen: Zahl der Zusagen.
   const interpreter = r.arrangeState
@@ -268,7 +274,7 @@ function RequestTile({ request: r, onPress }: { request: RequestData; onPress: (
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   header: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 8 },
   dateRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8 },
   dateText: { flex: 1, fontSize: 14, fontWeight: '500', color: colors.text },
@@ -281,4 +287,4 @@ const s = StyleSheet.create({
   lineText: { flex: 1, fontSize: 12, color: colors.muted, marginLeft: 4 },
   menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 8, gap: 16 },
   menuText: { fontSize: 16, color: colors.text },
-});
+}));

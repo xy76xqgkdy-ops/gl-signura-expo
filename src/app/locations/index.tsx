@@ -1,17 +1,19 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 
 import { Divider, ErrorText, Screen } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { put } from '../../lib/handoff';
 import { LocationData, locationAddress, parseLocation } from '../../lib/models';
-import { colors } from '../../lib/theme';
+import { makeStyles, useColors } from '../../lib/theme';
 
 // Eigene Orte (GET /me/locations): oben suchen (Name, Straße, PLZ, Ort),
 // antippen zum Ändern oder Löschen, "+" für einen neuen.
 export default function LocationListScreen() {
+  const colors = useColors();
+  const s = useS();
   const [locations, setLocations] = useState<LocationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export default function LocationListScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   search: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -117,4 +119,4 @@ const s = StyleSheet.create({
   item: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   name: { fontSize: 16, color: colors.text },
   address: { fontSize: 14, color: colors.muted, marginTop: 2 },
-});
+}));

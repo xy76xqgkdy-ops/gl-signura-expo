@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors } from '../lib/theme';
+import { darkColors, makeStyles, useColors } from '../lib/theme';
 
 export type IconName = ComponentProps<typeof MaterialIcons>['name'];
 
@@ -24,6 +24,8 @@ export type IconName = ComponentProps<typeof MaterialIcons>['name'];
 // Logo links, rechts daneben "Signura GL" und darunter "für Gehörlose".
 // Das Logo ist rein dekorativ und für Screenreader ausgeblendet.
 export function SignuraHeader() {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View style={styles.header}>
       <Image
@@ -56,12 +58,18 @@ export function Screen({
   padded?: boolean;
   center?: boolean;
 }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
       <ScrollView
         contentContainerStyle={[padded && styles.padded, center && styles.center]}
         keyboardShouldPersistTaps="handled"
-        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> : undefined}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.muted} colors={[colors.primary]} />
+          ) : undefined
+        }
       >
         {children}
       </ScrollView>
@@ -80,6 +88,8 @@ export function AppTextField({
   ...props
 }: TextInputProps & { label: string; secure?: boolean; style?: StyleProp<ViewStyle>; rightIcon?: IconName }) {
   const [hidden, setHidden] = useState(secure);
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View style={[styles.field, style]}>
       <Text style={styles.fieldLabel} numberOfLines={1}>
@@ -91,6 +101,7 @@ export function AppTextField({
           editable={editable}
           secureTextEntry={hidden}
           placeholderTextColor={colors.hint}
+          keyboardAppearance={colors === darkColors ? 'dark' : 'light'}
           style={[styles.input, !editable && { color: colors.muted }]}
         />
         {rightIcon && !secure && <MaterialIcons name={rightIcon} size={22} color={colors.muted} />}
@@ -128,6 +139,8 @@ export function TapField({
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable onPress={onPress} disabled={disabled} style={[styles.field, style]}>
       <Text style={styles.fieldLabel} numberOfLines={1}>
@@ -160,6 +173,8 @@ export function PrimaryButton({
   disabled?: boolean;
 }) {
   const off = disabled || loading;
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View style={styles.alignRight}>
       <Pressable
@@ -184,14 +199,17 @@ export function OutlineButton({
   icon,
   onPress,
   disabled,
-  color = colors.error,
+  color: colorProp,
 }: {
   label: string;
   icon?: IconName;
   onPress: () => void;
   disabled?: boolean;
-  color?: string;
+  color?: string; // Standard: Rot (colors.error)
 }) {
+  const colors = useColors();
+  const styles = useStyles();
+  const color = colorProp ?? colors.error;
   return (
     <Pressable
       onPress={onPress}
@@ -219,6 +237,8 @@ export function FilledButton({
   disabled?: boolean;
   tonal?: boolean;
 }) {
+  const colors = useColors();
+  const styles = useStyles();
   const fg = tonal ? colors.onTonal : colors.onPrimary;
   return (
     <Pressable
@@ -247,6 +267,8 @@ export function RoundIconButton({
   disabled?: boolean;
   variant?: 'tonal' | 'outlined' | 'plain';
 }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable
       onPress={onPress}
@@ -267,15 +289,18 @@ export function RoundIconButton({
 }
 
 export function ErrorText({ message }: { message?: string | null }) {
+  const styles = useStyles();
   if (!message) return null;
   return <Text style={styles.error}>{message}</Text>;
 }
 
 export function Divider() {
+  const styles = useStyles();
   return <View style={styles.divider} />;
 }
 
 export function Checkbox({ checked }: { checked: boolean }) {
+  const colors = useColors();
   return (
     <MaterialIcons
       name={checked ? 'check-box' : 'check-box-outline-blank'}
@@ -287,14 +312,16 @@ export function Checkbox({ checked }: { checked: boolean }) {
 
 // Rahmen mit abgerundeten Ecken (Karte).
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const styles = useStyles();
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
 export function Muted({ children, style }: { children: ReactNode; style?: object }) {
+  const colors = useColors();
   return <Text style={[{ color: colors.muted, fontSize: 12 }, style]}>{children}</Text>;
 }
 
-export const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   safe: { flex: 1, backgroundColor: colors.background },
   padded: { padding: 12 },
   center: { flexGrow: 1, justifyContent: 'center' },
@@ -322,7 +349,7 @@ export const styles = StyleSheet.create({
     minWidth: 100,
     alignItems: 'center',
   },
-  primaryOff: { backgroundColor: 'rgba(25, 28, 32, 0.12)' },
+  primaryOff: { backgroundColor: colors.disabled },
   primaryText: { color: colors.onPrimary, fontSize: 16, fontWeight: '600' },
   outline: {
     flexDirection: 'row',
@@ -350,4 +377,4 @@ export const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.divider,
   },
-});
+}));

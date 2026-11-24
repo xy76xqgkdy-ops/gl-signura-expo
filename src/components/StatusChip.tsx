@@ -1,12 +1,13 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { RequestStatus, STATUS } from '../lib/models';
-import { colors } from '../lib/theme';
+import { makeStyles } from '../lib/theme';
 
 // Status: farbiger Punkt plus Text, damit er auch ohne Farbunterscheidung
 // lesbar ist. Bewusst ohne Rahmen und Hintergrund, damit er nicht wie ein
 // Knopf aussieht. Gleich in der Liste und im Formular.
 export function StatusChip({ status }: { status: RequestStatus }) {
+  const s = useS();
   const { text, color } = STATUS[status];
   return (
     <View style={s.chip}>
@@ -16,7 +17,7 @@ export function StatusChip({ status }: { status: RequestStatus }) {
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -24,4 +25,4 @@ const s = StyleSheet.create({
   },
   dot: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
   text: { fontSize: 14, fontWeight: '500', color: colors.text },
-});
+}));

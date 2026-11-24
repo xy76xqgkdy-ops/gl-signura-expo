@@ -6,7 +6,7 @@ import { CodeStep, PasswordStep, SuccessView } from '../components/steps';
 import { AppTextField, ErrorText, PrimaryButton, Screen, SignuraHeader } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { isValidEmail } from '../lib/dates';
-import { colors } from '../lib/theme';
+import { useColors } from '../lib/theme';
 
 type Step = 'details' | 'password' | 'code' | 'success';
 
@@ -16,6 +16,7 @@ type Step = 'details' | 'password' | 'code' | 'success';
 //   Passwort → nur lokal
 //   Code     → POST /users/register       (legt den Benutzer an)
 export default function RegisterScreen() {
+  const colors = useColors();
   const params = useLocalSearchParams<{ email?: string }>(); // z. B. aus "Passwort vergessen"
   const [step, setStep] = useState<Step>('details');
   const [loading, setLoading] = useState(false);

@@ -6,7 +6,7 @@ import { CodeStep, PasswordStep, SuccessView } from '../components/steps';
 import { AppTextField, Card, ErrorText, PrimaryButton, Screen, SignuraHeader } from '../components/ui';
 import { api, ApiException, errorMessage } from '../lib/api';
 import { isValidEmail } from '../lib/dates';
-import { colors } from '../lib/theme';
+import { useColors } from '../lib/theme';
 
 type Step = 'email' | 'password' | 'code' | 'success';
 
@@ -16,6 +16,7 @@ type Step = 'email' | 'password' | 'code' | 'success';
 //   Passwort → nur lokal
 //   Code     → POST /users/password/reset  (setzt das neue Passwort)
 export default function ForgotPasswordScreen() {
+  const colors = useColors();
   const params = useLocalSearchParams<{ email?: string }>();
   const [step, setStep] = useState<Step>('email');
   const [loading, setLoading] = useState(false);

@@ -1,15 +1,16 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { AppTextField, ErrorText, PrimaryButton, Screen, SignuraHeader } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { isValidEmail } from '../lib/dates';
 import { saveSession, useSession } from '../lib/session';
-import { colors } from '../lib/theme';
+import { makeStyles } from '../lib/theme';
 
 // Anmeldung über POST /users/login (Signura-Backend).
 export default function LoginScreen() {
+  const s = useS();
   const { setUser } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -72,7 +73,7 @@ export default function LoginScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   link: { alignItems: 'center', paddingVertical: 10 },
   linkText: { color: colors.primary, fontSize: 15, fontWeight: '500' },
-});
+}));

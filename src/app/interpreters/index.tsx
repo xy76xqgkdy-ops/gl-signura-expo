@@ -1,18 +1,20 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { Divider, ErrorText, Screen } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { put } from '../../lib/handoff';
 import { INTERPRETER_STATUS, InterpreterData, parseInterpreter } from '../../lib/models';
-import { colors } from '../../lib/theme';
+import { makeStyles, useColors } from '../../lib/theme';
 
 // Meine DolmetscherInnen (GET /me/interpreters): eigene Wunsch-Dolmetscher.
 // Sie bekommen die Anfragen per E-Mail, nachdem sie die Einladung
 // angenommen haben. Antippen zum Ändern oder Löschen, "+" für einen neuen.
 export default function InterpreterListScreen() {
+  const colors = useColors();
+  const s = useS();
   const [list, setList] = useState<InterpreterData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +90,7 @@ export default function InterpreterListScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   info: { flexDirection: 'row', gap: 10, backgroundColor: colors.field, borderRadius: 12, padding: 12, margin: 12 },
   infoText: { flex: 1, fontSize: 15, lineHeight: 22, color: colors.text },
   item: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
@@ -96,4 +98,4 @@ const s = StyleSheet.create({
   sub: { fontSize: 14, color: colors.muted, marginTop: 2 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   dot: { width: 8, height: 8, borderRadius: 4, marginTop: 2 },
-});
+}));

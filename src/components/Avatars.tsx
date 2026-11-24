@@ -1,6 +1,6 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, View } from 'react-native';
 
-import { colors } from '../lib/theme';
+import { makeStyles } from '../lib/theme';
 
 // Rundes Profilbild einer Dolmetscher:in (Data-URL vom Backend).
 export function Avatar({ uri, size }: { uri: string; size: number }) {
@@ -11,6 +11,7 @@ export function Avatar({ uri, size }: { uri: string; size: number }) {
 // Hauptseite). Ein Bild allein ist so groß wie das Symbol (48), mehrere
 // sind kleiner, damit sie in die Zeile passen.
 export function AvatarStack({ pictures }: { pictures: string[] }) {
+  const s = useS();
   const shown = pictures.slice(0, 3);
   if (shown.length === 1) return <Avatar uri={shown[0]} size={48} />;
   const size = 36;
@@ -26,7 +27,7 @@ export function AvatarStack({ pictures }: { pictures: string[] }) {
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   // Weißer Rand trennt die Bilder voneinander.
   ring: { position: 'absolute', borderRadius: 20, borderWidth: 2, borderColor: colors.surface },
-});
+}));

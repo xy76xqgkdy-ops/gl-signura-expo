@@ -4,11 +4,11 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { FlagCheckList, FlagItem } from '../components/pickers';
 import { CodeInput } from '../components/steps';
-import { AppTextField, ErrorText, Muted, PrimaryButton, Screen } from '../components/ui';
+import { AppTextField, ErrorText, Muted, OutlineButton, PrimaryButton, Screen } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { isValidEmail } from '../lib/dates';
 import { useSession } from '../lib/session';
-import { colors } from '../lib/theme';
+import { useColors } from '../lib/theme';
 
 // Sprache der App (Anzeige, E-Mails). Zurzeit nur Deutsch, Englisch kommt später:
 // { value: 'en_US', name: 'English', flag: '🇬🇧' },
@@ -29,6 +29,7 @@ function normMobile(m: string) {
 // "speichern": Sind E-Mail und/oder Handynummer neu, schickt das Backend
 // zuerst Codes (POST /me/verify/code). Erst mit den Codes wird gespeichert.
 export default function ProfileScreen() {
+  const colors = useColors();
   const { user, setUser } = useSession();
   const str = (k: string) => (typeof user?.[k] === 'string' ? (user[k] as string) : '');
 
@@ -191,6 +192,10 @@ export default function ProfileScreen() {
       <View style={{ height: 16 }} />
       <PrimaryButton label="speichern" loading={loading} disabled={!canSave} onPress={save} />
       <ErrorText message={error} />
+      {/* Konto löschen: eigene Seite mit Passwort (Pflicht für App Store und Google Play). */}
+      <View style={{ marginTop: 40, alignItems: 'flex-start' }}>
+        <OutlineButton label="Konto löschen" icon="delete-outline" onPress={() => router.push('/delete-account')} />
+      </View>
     </Screen>
   );
 }

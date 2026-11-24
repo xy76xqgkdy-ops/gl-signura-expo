@@ -1,7 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { Avatar } from '../components/Avatars';
 import { DatePickerSheet, OptionSheet, TimePickerSheet } from '../components/pickers';
@@ -33,7 +33,7 @@ import {
   TimeOfDay,
   TIMES_OF_DAY,
 } from '../lib/models';
-import { colors, confirm } from '../lib/theme';
+import { confirm, makeStyles, useColors } from '../lib/theme';
 
 // Auswahl für den Grund. Ein älterer, freier Grund einer vorhandenen
 // Anfrage bleibt als zusätzliche Option erhalten.
@@ -63,6 +63,8 @@ const INFO_ARRANGE = [
 // vereinbart den Termin und schlägt ihn vor; hier annehmen
 // (POST …/proposal/accept) oder ablehnen (POST …/proposal/decline).
 export default function RequestFormScreen() {
+  const colors = useColors();
+  const s = useS();
   const params = useLocalSearchParams<{
     id?: string;
     date?: string;
@@ -723,6 +725,7 @@ const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), 
 
 // Name der Dolmetscher:in; eigene aus "Meine DolmetscherInnen" mit Zusatz.
 function OfferName({ offer }: { offer: OfferData }) {
+  const s = useS();
   return (
     <View style={{ flex: 1 }}>
       <Text style={s.offerName}>{offer.interpreterName}</Text>
@@ -733,6 +736,8 @@ function OfferName({ offer }: { offer: OfferData }) {
 
 // Profilbild der Dolmetscher:in, ohne Bild ein graues Symbol in gleicher Größe.
 function OfferPicture({ offer }: { offer: OfferData }) {
+  const colors = useColors();
+  const s = useS();
   if (offer.picture) return <Avatar uri={offer.picture} size={48} />;
   return (
     <View style={s.noPicture}>
@@ -741,7 +746,7 @@ function OfferPicture({ offer }: { offer: OfferData }) {
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   row: { flexDirection: 'row', alignItems: 'center' },
   hint: { marginBottom: 16, color: colors.text, lineHeight: 20 },
   info: {
@@ -806,4 +811,4 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-});
+}));

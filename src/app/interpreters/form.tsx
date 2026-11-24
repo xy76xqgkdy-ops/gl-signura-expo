@@ -7,12 +7,13 @@ import { api, errorMessage } from '../../lib/api';
 import { formatDate, isValidEmail } from '../../lib/dates';
 import { peek } from '../../lib/handoff';
 import { INTERPRETER_STATUS, InterpreterData } from '../../lib/models';
-import { colors, confirm } from '../../lib/theme';
+import { confirm, useColors } from '../../lib/theme';
 
 // Neuer Wunsch-Dolmetscher (POST /me/interpreters, schickt die Einladung)
 // oder vorhandenen ändern (PUT …/{id}; neue E-Mail = neue Einladung),
 // Einladung noch einmal schicken (POST …/{id}/invite) und löschen (DELETE …/{id}).
 export default function InterpreterFormScreen() {
+  const colors = useColors();
   const params = useLocalSearchParams<{ id?: string }>();
   const found = params.id ? peek<InterpreterData>('interpreter') : undefined;
   const existing = found && found.id === params.id ? found : undefined;

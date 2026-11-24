@@ -5,11 +5,12 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { PrimaryButton } from '../components/ui';
 import { errorMessage } from '../lib/api';
 import { restoreSession, useSession } from '../lib/session';
-import { colors } from '../lib/theme';
+import { useColors } from '../lib/theme';
 
 // Erste Seite beim App-Start: prüft das gespeicherte Token und öffnet die
 // Startseite (angemeldet) oder die Anmeldung.
 export default function StartScreen() {
+  const colors = useColors();
   const { setUser } = useSession();
   const [error, setError] = useState<string | null>(null);
 

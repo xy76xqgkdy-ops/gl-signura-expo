@@ -1,9 +1,9 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
 import { ComponentRef, useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 
-import { colors } from '../lib/theme';
+import { makeStyles, useColors } from '../lib/theme';
 import { AppTextField, ErrorText, PrimaryButton } from './ui';
 
 const CODE_LENGTH = 5;
@@ -13,6 +13,8 @@ const CODE_VALIDITY_SECONDS = 10 * 60;
 // 5 Kästchen für den Code. Ein unsichtbares Eingabefeld nimmt die Ziffern
 // auf, so geht auch Einfügen des ganzen Codes.
 export function CodeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const colors = useColors();
+  const s = useS();
   const ref = useRef<ComponentRef<typeof TextInput>>(null);
   const [focused, setFocused] = useState(false);
   return (
@@ -61,6 +63,7 @@ export function CodeStep({
   onSubmit: () => void;
   error?: string | null;
 }) {
+  const s = useS();
   const [left, setLeft] = useState(CODE_VALIDITY_SECONDS);
   useEffect(() => {
     const t = setInterval(() => setLeft((l) => l - 1), 1000);
@@ -105,6 +108,7 @@ export function PasswordStep({
   passwordLabel?: string;
   onSubmit: () => void;
 }) {
+  const s = useS();
   const ok = password.length >= 8 && password === confirm;
   return (
     <View>
@@ -129,6 +133,8 @@ export function SuccessView({
   buttonLabel: string;
   onPress: () => void;
 }) {
+  const colors = useColors();
+  const s = useS();
   return (
     <View style={s.success}>
       <MaterialIcons name="check-circle" size={64} color={colors.success} />
@@ -142,7 +148,7 @@ export function SuccessView({
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   text: { fontSize: 15, color: colors.text, lineHeight: 22 },
   codeRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
   codeBox: {
@@ -161,4 +167,4 @@ const s = StyleSheet.create({
   success: { alignItems: 'center', padding: 24 },
   successTitle: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginTop: 16, color: colors.text },
   successSub: { fontSize: 16, textAlign: 'center', marginTop: 8, color: colors.muted },
-});
+}));

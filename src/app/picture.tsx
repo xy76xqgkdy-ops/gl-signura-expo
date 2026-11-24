@@ -6,12 +6,14 @@ import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 
 import { ErrorText, FilledButton, OutlineButton, Screen } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
-import { colors } from '../lib/theme';
+import { makeStyles, useColors } from '../lib/theme';
 
 // Profilbild: mit der Kamera aufnehmen, aus der Galerie wählen oder löschen.
 //   GET/PUT/DELETE /me/picture
 // Das Bild wird vor dem Hochladen verkleinert (800 px, JPEG).
 export default function PictureScreen() {
+  const colors = useColors();
+  const s = useS();
   const [picture, setPicture] = useState<string | null>(null); // data:- oder file:-URI
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +102,7 @@ export default function PictureScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const useS = makeStyles((colors) => ({
   avatar: {
     width: 160,
     height: 160,
@@ -113,4 +115,4 @@ const s = StyleSheet.create({
   },
   image: { width: 160, height: 160 },
   buttons: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12, marginTop: 24 },
-});
+}));
