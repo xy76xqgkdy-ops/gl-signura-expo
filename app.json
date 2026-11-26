@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Signura",
+    "name": "Signura::GL",
     "slug": "signura",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -27,6 +27,7 @@
       ]
     },
     "web": {
+      "name": "Signura::GL",
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
@@ -35,8 +36,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Signura braucht Zugriff auf Ihre Fotos für das Profilbild.",
-          "cameraPermission": "Signura braucht die Kamera für das Profilbild.",
+          "photosPermission": "Signura::GL braucht Zugriff auf Ihre Fotos für das Profilbild.",
+          "cameraPermission": "Signura::GL braucht die Kamera für das Profilbild.",
           "microphonePermission": false
         }
       ],
@@ -45,6 +46,19 @@
         "expo-notifications",
         {
           "color": "#3F5F90"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "image": "./assets/images/splash-icon.png",
+            "backgroundColor": "#000000"
+          }
         }
       ]
     ],

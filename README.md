@@ -9,7 +9,7 @@ Am einfachsten über das Menü: `../menu.sh` → „App (Expo)“.
 ## Starten mit Expo Go
 
 ```bash
-cd gl.signura/frontend_expo
+cd gl.signura/frontend
 npm install          # nur beim ersten Mal
 npx expo start       # QR-Code mit Expo Go (Android) bzw. der Kamera (iPhone) scannen
 ```
