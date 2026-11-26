@@ -55,12 +55,13 @@ export default function RootLayout() {
           <Stack.Screen name="request" options={{ title: 'Anfrage' }} />
           <Stack.Screen name="locations/index" options={{ title: 'Meine Orte' }} />
           <Stack.Screen name="locations/form" options={{ title: 'Ort' }} />
-          <Stack.Screen name="interpreters/index" options={{ title: 'Meine DolmetscherInnen' }} />
+          <Stack.Screen name="interpreters/index" options={{ title: 'Meine Dolmetscher' }} />
           <Stack.Screen name="interpreters/form" options={{ title: 'Dolmetscher' }} />
           <Stack.Screen name="profile" options={{ title: 'Meine Daten' }} />
           <Stack.Screen name="delete-account" options={{ title: 'Konto löschen' }} />
           <Stack.Screen name="picture" options={{ title: 'Profilbild' }} />
           <Stack.Screen name="notifications" options={{ title: 'Benachrichtigungen' }} />
+          <Stack.Screen name="info" options={{ title: 'Info' }} />
         </Stack>
       </SessionProvider>
     </ThemeProvider>

@@ -115,6 +115,8 @@ export default function HomeScreen() {
         return router.push('/interpreters');
       case 'notifications':
         return router.push('/notifications');
+      case 'info':
+        return router.push('/info');
       case 'logout':
         await logout();
         router.replace('/login');
@@ -125,8 +127,9 @@ export default function HomeScreen() {
     { key: 'picture', icon: 'account-circle', label: 'Profilbild' },
     { key: 'profile', icon: 'person-outline', label: 'Meine Daten' },
     { key: 'locations', icon: 'place', label: 'Meine Orte' },
-    { key: 'interpreters', icon: 'record-voice-over', label: 'Meine DolmetscherInnen' },
+    { key: 'interpreters', icon: 'record-voice-over', label: 'Meine Dolmetscher' },
     { key: 'notifications', icon: 'notifications-none', label: 'Benachrichtigungen' },
+    { key: 'info', icon: 'info-outline', label: 'Info' },
   ];
 
   return (
@@ -249,7 +252,7 @@ function RequestTile({ request: r, onPress }: { request: RequestData; onPress: (
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [s.tile, pressed && { backgroundColor: colors.field }]}>
-      {/* Gebucht mit Bild: Profilbilder der Dolmetscher:innen, sonst Symbol. */}
+      {/* Gebucht mit Bild: Profilbilder der Dolmetscher, sonst Symbol. */}
       {r.interpreterPictures.length > 0 ? (
         <AvatarStack pictures={r.interpreterPictures} />
       ) : (

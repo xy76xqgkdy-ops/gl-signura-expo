@@ -110,8 +110,6 @@ export default function ForgotPasswordScreen() {
         <SuccessView
           title="Ihr Passwort ist geändert."
           subtitle="Sie können sich jetzt mit dem neuen Passwort anmelden."
-          buttonLabel="Zur Anmeldung"
-          onPress={() => router.dismissAll()}
         />
       )}
     </Screen>

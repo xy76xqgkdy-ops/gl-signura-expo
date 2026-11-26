@@ -2,12 +2,12 @@ import { Image, View } from 'react-native';
 
 import { makeStyles } from '../lib/theme';
 
-// Rundes Profilbild einer Dolmetscher:in (Data-URL vom Backend).
+// Rundes Profilbild eines Dolmetschers (Data-URL vom Backend).
 export function Avatar({ uri, size }: { uri: string; size: number }) {
   return <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} />;
 }
 
-// Bis zu 3 Bilder leicht übereinander (gebuchte Dolmetscher:innen auf der
+// Bis zu 3 Bilder leicht übereinander (gebuchte Dolmetscher auf der
 // Hauptseite). Ein Bild allein ist so groß wie das Symbol (48), mehrere
 // sind kleiner, damit sie in die Zeile passen.
 export function AvatarStack({ pictures }: { pictures: string[] }) {

@@ -130,8 +130,9 @@ export function SuccessView({
 }: {
   title: string;
   subtitle: string;
-  buttonLabel: string;
-  onPress: () => void;
+  // Ohne Knopf: z. B. wenn "<" oben links schon zurückführt.
+  buttonLabel?: string;
+  onPress?: () => void;
 }) {
   const colors = useColors();
   const s = useS();
@@ -140,10 +141,14 @@ export function SuccessView({
       <MaterialIcons name="check-circle" size={64} color={colors.success} />
       <Text style={s.successTitle}>{title}</Text>
       <Text style={s.successSub}>{subtitle}</Text>
-      <View style={{ height: 24, alignSelf: 'stretch' }} />
-      <View style={{ alignSelf: 'stretch' }}>
-        <PrimaryButton label={buttonLabel} onPress={onPress} />
-      </View>
+      {buttonLabel && onPress && (
+        <>
+          <View style={{ height: 24, alignSelf: 'stretch' }} />
+          <View style={{ alignSelf: 'stretch' }}>
+            <PrimaryButton label={buttonLabel} onPress={onPress} />
+          </View>
+        </>
+      )}
     </View>
   );
 }

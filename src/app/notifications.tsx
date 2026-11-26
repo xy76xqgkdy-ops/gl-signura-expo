@@ -1,9 +1,10 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { Linking, Switch, Text, View } from 'react-native';
 
-import { ErrorText, Muted, PrimaryButton, Screen } from '../components/ui';
+import { SaveHeaderButton, useDiscardGuard } from '../components/formHeader';
+import { ErrorText, Muted, Screen } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { disablePush, enablePush } from '../lib/push';
 import { useSession } from '../lib/session';
@@ -19,6 +20,11 @@ export default function NotificationsScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
+
+  // Geändert? Vergleich mit dem Stand beim Öffnen.
+  const [initialPush] = useState(push);
+  const dirty = push !== initialPush;
+  const guard = useDiscardGuard({ dirty, loading, message: 'Ihre Änderung wird nicht gespeichert.' });
 
   async function save() {
     setLoading(true);
@@ -50,6 +56,15 @@ export default function NotificationsScreen() {
 
   return (
     <Screen>
+      {/* Oben links "<" bzw. "x", rechts der Haken zum Speichern (components/formHeader.tsx). */}
+      <Stack.Screen
+        options={{
+          ...guard,
+          headerRight: () => (
+            <SaveHeaderButton label="speichern" onPress={save} disabled={!dirty || loading} loading={loading} />
+          ),
+        }}
+      />
       <Text style={{ fontSize: 15, color: colors.text, marginBottom: 8 }}>
         Wir schicken Ihnen eine Mitteilung aufs Handy, wenn sich bei Ihren Anfragen etwas ändert. Zum Beispiel bei einer
         neuen Zusage.
@@ -61,14 +76,12 @@ export default function NotificationsScreen() {
       </View>
       {denied && (
         <View style={{ marginHorizontal: 16, marginTop: 4 }}>
-          <Muted>Mitteilungen sind für Signura ausgeschaltet. Bitte erlauben Sie sie in den Einstellungen des Handys.</Muted>
+          <Muted>Mitteilungen sind für Signura::GL ausgeschaltet. Bitte erlauben Sie sie in den Einstellungen des Handys.</Muted>
           <Text style={s.link} onPress={() => Linking.openSettings()}>
             Einstellungen öffnen
           </Text>
         </View>
       )}
-      <View style={{ height: 16 }} />
-      <PrimaryButton label="speichern" loading={loading} onPress={save} />
       <ErrorText message={error} />
     </Screen>
   );

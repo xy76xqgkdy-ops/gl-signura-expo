@@ -9,7 +9,7 @@ import { put } from '../../lib/handoff';
 import { INTERPRETER_STATUS, InterpreterData, parseInterpreter } from '../../lib/models';
 import { makeStyles, useColors } from '../../lib/theme';
 
-// Meine DolmetscherInnen (GET /me/interpreters): eigene Wunsch-Dolmetscher.
+// Meine Dolmetscher (GET /me/interpreters): eigene Wunsch-Dolmetscher.
 // Sie bekommen die Anfragen per E-Mail, nachdem sie die Einladung
 // angenommen haben. Antippen zum Ändern oder Löschen, "+" für einen neuen.
 export default function InterpreterListScreen() {

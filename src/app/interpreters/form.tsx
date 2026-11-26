@@ -2,7 +2,8 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { AppTextField, ErrorText, OutlineButton, PrimaryButton, Screen } from '../../components/ui';
+import { SaveHeaderButton, useDiscardGuard } from '../../components/formHeader';
+import { AppTextField, ErrorText, OutlineButton, Screen } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { formatDate, isValidEmail } from '../../lib/dates';
 import { peek } from '../../lib/handoff';
@@ -26,6 +27,18 @@ export default function InterpreterFormScreen() {
 
   const canSave = name.trim() !== '' && isValidEmail(email) && !loading;
   const canReinvite = !!existing && existing.status !== 'accepted';
+
+  // Eingaben geändert? Vergleich mit dem Stand beim Öffnen.
+  const formKey = JSON.stringify([name, email]);
+  const [initialKey] = useState(formKey);
+  const dirty = formKey !== initialKey;
+  const guard = useDiscardGuard({
+    dirty,
+    loading,
+    message: existing
+      ? 'Ihre Änderungen am Dolmetscher werden nicht gespeichert.'
+      : 'Die Einladung wird nicht verschickt. Ihre Eingaben gehen verloren.',
+  });
 
   async function run(action: () => Promise<void>, back = true) {
     setLoading(true);
@@ -68,7 +81,21 @@ export default function InterpreterFormScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: existing ? 'Dolmetscher bearbeiten' : 'Neuer Dolmetscher' }} />
+      {/* Oben links "<" bzw. "x", rechts der Haken: speichern bzw. einladen (components/formHeader.tsx). */}
+      <Stack.Screen
+        options={{
+          title: existing ? 'Dolmetscher bearbeiten' : 'Neuer Dolmetscher',
+          ...guard,
+          headerRight: () => (
+            <SaveHeaderButton
+              label={existing ? 'speichern' : 'einladen'}
+              onPress={save}
+              disabled={!canSave || !dirty}
+              loading={loading}
+            />
+          ),
+        }}
+      />
       <Screen>
         {!existing && (
           <Text style={{ marginBottom: 16, color: colors.text, fontSize: 15, lineHeight: 22 }}>
@@ -96,11 +123,12 @@ export default function InterpreterFormScreen() {
           </View>
         )}
         {info && <Text style={{ color: colors.success, marginBottom: 12 }}>{info}</Text>}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
-          {existing && <OutlineButton icon="delete-outline" label="Löschen" disabled={loading} onPress={remove} />}
-          <View style={{ flex: 1 }} />
-          <PrimaryButton label={existing ? 'Speichern' : 'Einladen'} loading={loading} disabled={!canSave} onPress={save} />
-        </View>
+        {/* Löschen unten links; gespeichert wird mit dem Haken oben rechts. */}
+        {existing && (
+          <View style={{ flexDirection: 'row', marginTop: 12 }}>
+            <OutlineButton icon="delete-outline" label="Löschen" disabled={loading} onPress={remove} />
+          </View>
+        )}
         <ErrorText message={error} />
       </Screen>
     </>

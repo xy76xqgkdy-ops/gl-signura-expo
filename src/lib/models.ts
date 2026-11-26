@@ -30,7 +30,7 @@ export type RequestData = {
   locationEmail: string;
   locationPhone: string;
   interpreterName: string | null;
-  interpreterPictures: string[]; // gebuchte Dolmetscher:innen, Data-URLs (höchstens 3)
+  interpreterPictures: string[]; // gebuchte Dolmetscher, Data-URLs (höchstens 3)
   offerCount: number;
   status: RequestStatus;
   // Terminsuche ("Bitte Termin für mich vereinbaren"): booking "arrange".
@@ -98,16 +98,12 @@ export function parseRequest(j: Json): RequestData {
   };
 }
 
-// Kurzes Datum "Di. 24.11." und Zeitraum "23.11.–27.11." (ein Tag nur einmal).
+// Kurzes Datum "Di. 24.11." und Beginn der Terminsuche "ab 23.11." (spätestens fragt
+// die App nicht mehr; es wird automatisch 3 Monate später gesetzt).
 const WD = ['So.', 'Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.'];
 export const shortDay = (d: Date) => `${WD[d.getDay()]} ${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.`;
 const dm = (d: Date) => `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.`;
-export const wishText = (r: RequestData) =>
-  r.wishFrom && r.wishTo
-    ? r.wishFrom.getTime() === r.wishTo.getTime()
-      ? dm(r.wishFrom)
-      : `${dm(r.wishFrom)}–${dm(r.wishTo)}`
-    : '';
+export const wishText = (r: RequestData) => (r.wishFrom ? `ab ${dm(r.wishFrom)}` : '');
 
 // Stand der Terminsuche in einem Satz (Liste).
 export function arrangeText(r: RequestData): string {
@@ -136,9 +132,9 @@ export const timeRange = (r: RequestData) => `${formatTime(r.start)} – ${forma
 // Eigener Wunsch-Dolmetscher (GET /me/interpreters).
 export type InterpreterStatus = 'invited' | 'accepted' | 'declined';
 export const INTERPRETER_STATUS: Record<InterpreterStatus, { text: string; color: string }> = {
-  invited: { text: 'Eingeladen, noch keine Antwort', color: '#FF9800' },
-  accepted: { text: 'Einverstanden, bekommt Ihre Anfragen', color: '#4CAF50' },
-  declined: { text: 'Nicht einverstanden', color: '#9E9E9E' },
+  invited: { text: 'Noch keine Antwort', color: '#FF9800' },
+  accepted: { text: 'Nimmt gern Ihre Anfragen an', color: '#4CAF50' },
+  declined: { text: 'Nimmt keine Anfragen an', color: '#9E9E9E' },
 };
 export type InterpreterData = { id: string; name: string; email: string; status: InterpreterStatus; invitedAt: Date };
 
@@ -159,7 +155,7 @@ export type OfferData = {
   status: string;
   proposedStart: Date | null;
   proposedEnd: Date | null;
-  own: boolean; // aus "Meine DolmetscherInnen"
+  own: boolean; // aus "Meine Dolmetscher"
 };
 
 export const parseOffer = (j: Json): OfferData => ({

@@ -2,7 +2,8 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
-import { AppTextField, ErrorText, OutlineButton, PrimaryButton, Screen } from '../../components/ui';
+import { SaveHeaderButton, useDiscardGuard } from '../../components/formHeader';
+import { AppTextField, ErrorText, OutlineButton, Screen } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { peek } from '../../lib/handoff';
 import { LocationData } from '../../lib/models';
@@ -25,6 +26,16 @@ export default function LocationFormScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const canSave = [name, street, postalcode, city].every((v) => v.trim() !== '') && !loading;
+
+  // Eingaben geändert? Vergleich mit dem Stand beim Öffnen.
+  const formKey = JSON.stringify([name, street, postalcode, city, email, phone]);
+  const [initialKey] = useState(formKey);
+  const dirty = formKey !== initialKey;
+  const guard = useDiscardGuard({
+    dirty,
+    loading,
+    message: existing ? 'Ihre Änderungen am Ort werden nicht gespeichert.' : 'Der Ort wird nicht gespeichert.',
+  });
 
   async function save() {
     setLoading(true);
@@ -71,9 +82,18 @@ export default function LocationFormScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: existing ? 'Ort bearbeiten' : 'Neuer Ort' }} />
+      {/* Oben links "<" bzw. "x", rechts der Haken zum Speichern (components/formHeader.tsx). */}
+      <Stack.Screen
+        options={{
+          title: existing ? 'Ort bearbeiten' : 'Neuer Ort',
+          ...guard,
+          headerRight: () => (
+            <SaveHeaderButton label="speichern" onPress={save} disabled={!canSave || !dirty} loading={loading} />
+          ),
+        }}
+      />
       <Screen>
-        <AppTextField label="Name (z. B. Praxis Dr. Müller)" value={name} onChangeText={setName} autoFocus={!existing} />
+        <AppTextField label="Name (z. B. Praxis, Amt oder Firma)" value={name} onChangeText={setName} autoFocus={!existing} />
         <AppTextField label="Straße und Hausnummer" value={street} onChangeText={setStreet} />
         <View style={{ flexDirection: 'row' }}>
           <AppTextField style={{ width: 120, marginRight: 12 }} label="PLZ" value={postalcode} onChangeText={setPostalcode} keyboardType="number-pad" />
@@ -87,12 +107,12 @@ export default function LocationFormScreen() {
           autoCapitalize="none"
         />
         <AppTextField label="Telefon (optional)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        {/* Löschen links, Speichern rechts (wie bei der Anfrage). */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
-          {existing && <OutlineButton icon="delete-outline" label="Löschen" disabled={loading} onPress={remove} />}
-          <View style={{ flex: 1 }} />
-          <PrimaryButton label="Speichern" loading={loading} disabled={!canSave} onPress={save} />
-        </View>
+        {/* Löschen unten links; gespeichert wird mit dem Haken oben rechts. */}
+        {existing && (
+          <View style={{ flexDirection: 'row', marginTop: 12 }}>
+            <OutlineButton icon="delete-outline" label="Löschen" disabled={loading} onPress={remove} />
+          </View>
+        )}
         <ErrorText message={error} />
       </Screen>
     </>

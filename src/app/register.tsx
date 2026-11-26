@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -115,8 +115,6 @@ export default function RegisterScreen() {
         <SuccessView
           title="Ihr Konto ist fertig."
           subtitle="Sie können sich jetzt anmelden."
-          buttonLabel="Zur Anmeldung"
-          onPress={() => router.dismissAll()}
         />
       )}
     </Screen>
