@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { FlagCheckList, FlagItem } from '../components/pickers';
-import { SaveHeaderButton, useDiscardGuard } from '../components/formHeader';
+import { DeleteHeaderButton, headerButtons, SaveHeaderButton, useDiscardGuard } from '../components/formHeader';
 import { CodeInput } from '../components/steps';
-import { AppTextField, ErrorText, Muted, OutlineButton, PrimaryButton, Screen } from '../components/ui';
+import { AppTextField, ErrorText, InfoNote, Muted, OutlineButton, PrimaryButton, Screen } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { isValidEmail } from '../lib/dates';
 import { hasConsent } from '../lib/consent';
@@ -149,15 +149,26 @@ export default function ProfileScreen() {
       await submit(false, false);
     });
 
-  // Oben links "<" bzw. "x"; rechts der Haken zum Speichern (nicht bei der Code-Eingabe,
-  // dort "bestätigen").
+  // Oben links "<" bzw. "x"; rechts Papierkorb (Konto löschen, eigene Seite mit
+  // Passwort) und der Haken zum Speichern. Nicht bei der Code-Eingabe, dort "bestätigen".
   const header = (
     <Stack.Screen
       options={{
         ...guard,
-        headerRight: awaitingCodes
-          ? undefined
-          : () => <SaveHeaderButton label="speichern" onPress={save} disabled={!canSave || !dirty} loading={loading} />,
+        ...(awaitingCodes
+          ? { headerRight: undefined, unstable_headerRightItems: undefined }
+          : headerButtons([
+              !loading && (
+                <DeleteHeaderButton
+                  key="delete"
+                  label="Konto löschen"
+                  hint="Öffnet die Seite zum Löschen Ihres Kontos."
+                  onPress={() => router.push('/delete-account')}
+                  disabled={loading}
+                />
+              ),
+              <SaveHeaderButton key="save" label="speichern" onPress={save} disabled={!canSave || !dirty} loading={loading} />,
+            ])),
       }}
     />
   );
@@ -210,6 +221,10 @@ export default function ProfileScreen() {
   return (
     <Screen>
       {header}
+      <InfoNote>
+        Vermittler und Dolmetscher sehen Ihren Namen. E-Mail und Handynummer brauchen wir für die Anmeldung und für
+        Nachrichten an Sie.
+      </InfoNote>
       <View style={{ flexDirection: 'row' }}>
         <AppTextField style={{ flex: 1, marginRight: 12 }} label="Vorname" value={firstName} onChangeText={setFirstName} />
         <AppTextField style={{ flex: 1 }} label="Nachname" value={lastName} onChangeText={setLastName} />
@@ -231,10 +246,10 @@ export default function ProfileScreen() {
         />
       )}
       <ErrorText message={error} />
-      {/* Einwilligung widerrufen (Art. 9 DSGVO, lib/consent.ts) und Konto löschen
-          (eigene Seite mit Passwort, Pflicht für App Store und Google Play). */}
-      <View style={{ marginTop: 40, alignItems: 'flex-start', gap: 12 }}>
-        {hasConsent(user) && (
+      {/* Einwilligung widerrufen (Art. 9 DSGVO, lib/consent.ts). Konto löschen
+          (Pflicht für App Store und Google Play) ist der Papierkorb oben rechts. */}
+      {hasConsent(user) && (
+        <View style={{ marginTop: 40, alignItems: 'flex-start' }}>
           <OutlineButton
             label="Einwilligung widerrufen"
             icon="block"
@@ -242,9 +257,8 @@ export default function ProfileScreen() {
             disabled={loading}
             onPress={withdrawConsent}
           />
-        )}
-        <OutlineButton label="Konto löschen" icon="delete-outline" onPress={() => router.push('/delete-account')} />
-      </View>
+        </View>
+      )}
     </Screen>
   );
 }

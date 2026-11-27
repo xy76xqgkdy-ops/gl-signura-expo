@@ -2,8 +2,8 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { SaveHeaderButton, useDiscardGuard } from '../../components/formHeader';
-import { AppTextField, ErrorText, OutlineButton, Screen } from '../../components/ui';
+import { DeleteHeaderButton, headerButtons, SaveHeaderButton, useDiscardGuard } from '../../components/formHeader';
+import { AppTextField, ErrorText, InfoNote, OutlineButton, Screen, StatusNote } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { formatDate, isValidEmail } from '../../lib/dates';
 import { peek } from '../../lib/handoff';
@@ -81,32 +81,43 @@ export default function InterpreterFormScreen() {
 
   return (
     <>
-      {/* Oben links "<" bzw. "x", rechts der Haken: speichern bzw. einladen (components/formHeader.tsx). */}
+      {/* Oben links "<" bzw. "x", rechts Papierkorb (nur beim Bearbeiten) und Haken: speichern bzw. einladen (components/formHeader.tsx). */}
       <Stack.Screen
         options={{
           title: existing ? 'Dolmetscher bearbeiten' : 'Neuer Dolmetscher',
           ...guard,
-          headerRight: () => (
+          ...headerButtons([
+            existing && !loading && (
+              <DeleteHeaderButton key="delete" label="Dolmetscher löschen" onPress={remove} disabled={loading} />
+            ),
             <SaveHeaderButton
+              key="save"
               label={existing ? 'speichern' : 'einladen'}
               onPress={save}
               disabled={!canSave || !dirty}
               loading={loading}
-            />
-          ),
+            />,
+          ]),
         }}
       />
       <Screen>
         {!existing && (
-          <Text style={{ marginBottom: 16, color: colors.text, fontSize: 15, lineHeight: 22 }}>
+          <InfoNote>
             Wir schicken eine E-Mail an Ihren Dolmetscher. Er muss einverstanden sein. Dann bekommt er Ihre Anfragen.
-          </Text>
+          </InfoNote>
         )}
         {existing && (
-          <Text style={{ marginBottom: 16, color: colors.text, fontSize: 15 }}>
-            {INTERPRETER_STATUS[existing.status].text}
-            {existing.status === 'invited' ? ` (seit ${formatDate(existing.invitedAt)})` : ''}
-          </Text>
+          <>
+            {/* Status mit farbigem Punkt (grün, gelb, grau wie in der Liste). */}
+            <StatusNote color={INTERPRETER_STATUS[existing.status].color}>
+              {INTERPRETER_STATUS[existing.status].text}
+              {existing.status === 'invited' ? ` (seit ${formatDate(existing.invitedAt)})` : ''}
+            </StatusNote>
+            <InfoNote>
+              Ändern Sie die E-Mail-Adresse, schicken wir eine neue Einladung. Der Dolmetscher muss dann wieder
+              einverstanden sein.
+            </InfoNote>
+          </>
         )}
         <AppTextField label="Name" value={name} onChangeText={setName} autoFocus={!existing} />
         <AppTextField
@@ -123,12 +134,6 @@ export default function InterpreterFormScreen() {
           </View>
         )}
         {info && <Text style={{ color: colors.success, marginBottom: 12 }}>{info}</Text>}
-        {/* Löschen unten links; gespeichert wird mit dem Haken oben rechts. */}
-        {existing && (
-          <View style={{ flexDirection: 'row', marginTop: 12 }}>
-            <OutlineButton icon="delete-outline" label="Löschen" disabled={loading} onPress={remove} />
-          </View>
-        )}
         <ErrorText message={error} />
       </Screen>
     </>

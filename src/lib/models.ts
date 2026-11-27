@@ -156,6 +156,7 @@ export type OfferData = {
   proposedStart: Date | null;
   proposedEnd: Date | null;
   own: boolean; // aus "Meine Dolmetscher"
+  partnerName: string | null; // über Vermittler: dessen Name
 };
 
 export const parseOffer = (j: Json): OfferData => ({
@@ -166,6 +167,7 @@ export const parseOffer = (j: Json): OfferData => ({
   proposedStart: optDate(j.proposed_start),
   proposedEnd: optDate(j.proposed_end),
   own: j.own === true,
+  partnerName: nonEmpty(j.partner_name),
 });
 
 // Ein eigener Ort (GET/POST /me/locations).

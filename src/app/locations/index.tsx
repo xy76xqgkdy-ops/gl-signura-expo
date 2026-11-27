@@ -3,7 +3,7 @@ import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 
-import { Divider, ErrorText, Screen } from '../../components/ui';
+import { Divider, ErrorText, InfoNote, Screen } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { put } from '../../lib/handoff';
 import { LocationData, locationAddress, parseLocation } from '../../lib/models';
@@ -58,6 +58,9 @@ export default function LocationListScreen() {
         }}
       />
       <Screen padded={false} onRefresh={load}>
+        <InfoNote style={{ margin: 12, marginBottom: 4 }}>
+          Hier speichern Sie Adressen, die Sie oft brauchen. Bei einer neuen Anfrage können Sie sie schnell auswählen.
+        </InfoNote>
         {/* Suchfeld: filtert die Liste beim Tippen. */}
         {locations.length > 0 && (
           <View style={s.search}>

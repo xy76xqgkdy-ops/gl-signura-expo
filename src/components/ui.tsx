@@ -321,6 +321,60 @@ export function Muted({ children, style }: { children: ReactNode; style?: object
   return <Text style={[{ color: colors.muted, fontSize: 12 }, style]}>{children}</Text>;
 }
 
+// Hinweis mit ⓘ: ohne Hintergrund und Rahmen, nur Symbol und Text. Folgezeilen
+// beginnen unter dem Text.
+export function InfoNote({ children, style }: { children: ReactNode; style?: object }) {
+  const colors = useColors();
+  return (
+    <View style={[{ flexDirection: 'row', gap: 10, marginBottom: 16 }, style]}>
+      <MaterialIcons name="info-outline" size={22} color={colors.primary} />
+      <Text style={{ flex: 1, fontSize: 15, lineHeight: 22, color: colors.text }}>{children}</Text>
+    </View>
+  );
+}
+
+// Symbole der Kopfzeile mitten im Text (Hinweise wie "tippen Sie oben rechts
+// auf ✓"): gleiche Farbe wie oben rechts, Haken grün, Papierkorb rot.
+export function CheckSymbol() {
+  const colors = useColors();
+  return <MaterialIcons name="check" size={18} color={colors.success} accessibilityLabel="Haken" />;
+}
+export function BinSymbol() {
+  const colors = useColors();
+  return <MaterialIcons name="delete-outline" size={18} color={colors.error} accessibilityLabel="Papierkorb" />;
+}
+
+// Status mit farbigem Punkt (z. B. grün "Gebucht", rot "Offen"). Die Spalte des
+// Punkts ist so breit wie das ⓘ von InfoNote: Die Texte stehen genau untereinander.
+export function StatusNote({ color, children, style }: { color: string; children: ReactNode; style?: object }) {
+  const colors = useColors();
+  return (
+    <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 }, style]}>
+      <View style={{ width: 22, alignItems: 'center' }}>
+        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: color }} />
+      </View>
+      <Text style={{ flex: 1, fontSize: 15, lineHeight: 22, color: colors.text }}>{children}</Text>
+    </View>
+  );
+}
+
+// Aufzählung mit Punkten. Der Punkt steht in einer eigenen Spalte: Bricht ein
+// Eintrag um, beginnt die nächste Zeile unter dem Text, nicht unter dem Punkt.
+export function BulletList({ items, style }: { items: string[]; style?: object }) {
+  const colors = useColors();
+  const text = { fontSize: 15, lineHeight: 21, color: colors.text };
+  return (
+    <View style={style}>
+      {items.map((t) => (
+        <View key={t} style={{ flexDirection: 'row', marginBottom: 8 }}>
+          <Text style={[text, { width: 16 }]}>•</Text>
+          <Text style={[text, { flex: 1 }]}>{t}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const useStyles = makeStyles((colors) => ({
   safe: { flex: 1, backgroundColor: colors.background },
   padded: { padding: 12 },

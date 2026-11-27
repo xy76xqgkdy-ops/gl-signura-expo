@@ -2,8 +2,8 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
-import { SaveHeaderButton, useDiscardGuard } from '../../components/formHeader';
-import { AppTextField, ErrorText, OutlineButton, Screen } from '../../components/ui';
+import { DeleteHeaderButton, headerButtons, SaveHeaderButton, useDiscardGuard } from '../../components/formHeader';
+import { AppTextField, ErrorText, InfoNote, Screen } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { peek } from '../../lib/handoff';
 import { LocationData } from '../../lib/models';
@@ -82,17 +82,23 @@ export default function LocationFormScreen() {
 
   return (
     <>
-      {/* Oben links "<" bzw. "x", rechts der Haken zum Speichern (components/formHeader.tsx). */}
+      {/* Oben links "<" bzw. "x", rechts Papierkorb (nur beim Bearbeiten) und Haken zum Speichern (components/formHeader.tsx). */}
       <Stack.Screen
         options={{
           title: existing ? 'Ort bearbeiten' : 'Neuer Ort',
           ...guard,
-          headerRight: () => (
-            <SaveHeaderButton label="speichern" onPress={save} disabled={!canSave || !dirty} loading={loading} />
-          ),
+          ...headerButtons([
+            existing && !loading && <DeleteHeaderButton key="delete" label="Ort löschen" onPress={remove} disabled={loading} />,
+            <SaveHeaderButton key="save" label="speichern" onPress={save} disabled={!canSave || !dirty} loading={loading} />,
+          ]),
         }}
       />
       <Screen>
+        {/* Bei "Neuer Ort" ohne den Satz zu bisherigen Anfragen (gibt es noch nicht). */}
+        <InfoNote>
+          {existing ? 'Ändern Sie den Ort, bleiben Ihre bisherigen Anfragen gleich. ' : ''}
+          Die Telefonnummer bekommt nur der Vermittler, der für Sie einen Termin vereinbart.
+        </InfoNote>
         <AppTextField label="Name (z. B. Praxis, Amt oder Firma)" value={name} onChangeText={setName} autoFocus={!existing} />
         <AppTextField label="Straße und Hausnummer" value={street} onChangeText={setStreet} />
         <View style={{ flexDirection: 'row' }}>
@@ -107,12 +113,6 @@ export default function LocationFormScreen() {
           autoCapitalize="none"
         />
         <AppTextField label="Telefon (optional)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        {/* Löschen unten links; gespeichert wird mit dem Haken oben rechts. */}
-        {existing && (
-          <View style={{ flexDirection: 'row', marginTop: 12 }}>
-            <OutlineButton icon="delete-outline" label="Löschen" disabled={loading} onPress={remove} />
-          </View>
-        )}
         <ErrorText message={error} />
       </Screen>
     </>

@@ -23,6 +23,6 @@ const useS = makeStyles((colors) => ({
     alignItems: 'center',
     paddingVertical: 4,
   },
-  dot: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
+  dot: { width: 14, height: 14, borderRadius: 7, marginRight: 8 }, // so groß wie bei StatusNote
   text: { fontSize: 14, fontWeight: '500', color: colors.text },
 }));

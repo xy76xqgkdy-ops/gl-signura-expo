@@ -1,5 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import Constants from 'expo-constants';
+import * as Application from 'expo-application';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Updates from 'expo-updates';
 import { Linking, Platform, Pressable, Text, View } from 'react-native';
 
@@ -9,6 +10,16 @@ import { formatDate, formatTime } from '../lib/dates';
 import { makeStyles, useColors } from '../lib/theme';
 
 const IMPRINT_URL = 'https://gl.signura.de/impressum';
+
+// Version mit Build-Nummer, z. B. "1.0.0 (Build 7)". Die Build-Nummer zählt EAS
+// bei jedem Build selbst hoch (eas.json: autoIncrement, Stand bei expo.dev).
+// In Expo Go und im Browser gibt es keinen eigenen Build.
+function appVersion(): string {
+  const version = Constants.expoConfig?.version ?? '–';
+  if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) return `${version} (Expo Go)`;
+  const build = Application.nativeBuildVersion;
+  return build ? `${Application.nativeApplicationVersion ?? version} (Build ${build})` : version;
+}
 
 // Info: Version und Stand der App (Build oder EAS Update), Gerät, Links zu
 // Datenschutz und Impressum. Zeigt z. B., ob ein EAS Update angekommen ist.
@@ -21,7 +32,7 @@ export default function InfoScreen() {
 
   // Ohne expo-updates (Entwicklung, Browser) gibt es keinen Stand.
   const rows: [string, string][] = [
-    ['Version', Constants.expoConfig?.version ?? '–'],
+    ['Version', appVersion()],
     [
       'Stand',
       !Updates.isEnabled

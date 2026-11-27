@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 
-import { ErrorText, FilledButton, OutlineButton, Screen } from '../components/ui';
+import { ErrorText, FilledButton, InfoNote, OutlineButton, Screen } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { makeStyles, useColors } from '../lib/theme';
 
@@ -46,7 +46,9 @@ export default function PictureScreen() {
         quality: 1,
         cameraType: ImagePicker.CameraType.front,
       };
-      result = camera ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
+      result = camera
+        ? await ImagePicker.launchCameraAsync(options)
+        : await ImagePicker.launchImageLibraryAsync(options);
     } catch {
       setError('Die Kamera oder die Fotos können nicht geöffnet werden.');
       return;
@@ -58,7 +60,11 @@ export default function PictureScreen() {
       const ctx = ImageManipulator.manipulate(result.assets[0].uri);
       ctx.resize({ width: 800 });
       const image = await ctx.renderAsync();
-      const saved = await image.saveAsync({ format: SaveFormat.JPEG, compress: 0.85, base64: true });
+      const saved = await image.saveAsync({
+        format: SaveFormat.JPEG,
+        compress: 0.85,
+        base64: true,
+      });
       if (!saved.base64) throw new Error('kein Bild');
       await api.putBase64('/me/picture', saved.base64, 'image/jpeg');
       setPicture(saved.uri);
@@ -83,7 +89,11 @@ export default function PictureScreen() {
   }
 
   return (
-    <Screen center>
+    <Screen>
+      {/* Alles oben: Hinweis, darunter Bild und Knöpfe. */}
+      <InfoNote style={{ marginBottom: 24 }}>
+        Ein Profilbild ist freiwillig. Das Bild sehen nur Sie in der App. Vermittler und Dolmetscher sehen es nicht.
+      </InfoNote>
       <View style={s.avatar}>
         {picture && <Image source={{ uri: picture }} style={s.image} />}
         {loading ? (
@@ -114,5 +124,11 @@ const useS = makeStyles((colors) => ({
     overflow: 'hidden',
   },
   image: { width: 160, height: 160 },
-  buttons: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12, marginTop: 24 },
+  buttons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 24,
+  },
 }));

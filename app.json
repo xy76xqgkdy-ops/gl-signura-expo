@@ -9,6 +9,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "de.gl.signura.app",
+      "associatedDomains": ["applinks:gl.signura.de"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -22,6 +23,14 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "de.gl.signura.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "https", "host": "gl.signura.de", "path": "/api/app" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ]
